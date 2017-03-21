@@ -1,0 +1,290 @@
+% preamble.tex -- packages to include
+%
+% Wisconsin dissertation template
+% Copyright (c) 2008 William C. Benton.  All rights reserved.
+%
+% This program can redistributed and/or modified under the terms
+% of the LaTeX Project Public License Distributed from CTAN
+% archives in directory macros/latex/base/lppl.txt; either
+% version 1 of the License, or (at your option) any later version.
+%
+% This program includes other software that is licensed under the
+% terms of the LPPL and the Perl Artistic License; see README for details.
+%
+% You, the user, still hold the copyright to any document you produce
+% with this software (like your dissertation).
+
+%% You should use natbib
+\IfFileExists{natbib.sty}{%
+\usepackage{natbib}%
+}{}
+
+\usepackage[margin=1in]{geometry}
+\ifpdf
+\usepackage[pdftex]{graphicx}
+\else
+\usepackage{graphicx}
+\fi
+\usepackage{pdflscape}
+\usepackage{rotating}
+%% You probably need appendix, if you want appendices
+\IfFileExists{appendix.sty}{%
+\usepackage{appendix}%
+}{}
+
+%% the spacing in memoir is weird, you'll need to use this
+\DisemulatePackage{setspace}
+%% \usepackage[onehalfspacing]{setspace}
+\usepackage[doublespacing]{setspace}
+
+%% List setup; the ``hanglist`` environment will allow you to have
+%% nicely-typeset enumerated lists (i.e. with the numbers hanging in
+%% the margins).  You need at least version 2.1 of enumitem.sty.  If
+%% you don't have enumitem installed at all, hanglist will just be an
+%% alias for enumerate.
+\IfFileExists{enumitem.sty}{%
+\usepackage[loadonly]{enumitem}[2007/06/30]%
+\newlist{hanglist}{enumerate}{1}% 
+\setlist[hanglist]{label=\arabic*.}%
+\setlist[hanglist,1]{leftmargin=0pt}%
+}{%
+\newenvironment{hanglist}{\begin{enumerate}}{\end{enumerate}}%
+}
+
+
+%% Avoid ugly "Type 3" fonts
+\usepackage{lmodern}
+\usepackage[LY1]{fontenc}
+\usepackage[LY1]{eulervm}
+%% Comment out any of these that you don't want
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{bm}
+%\usepackage{theorem}
+\usepackage{hyperref}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{wrapfig}
+\usepackage[nonumberlist,xindy,toc]{glossaries}
+
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{color}
+\usepackage{framed}
+\definecolor{shadecolor}{gray}{0.9}
+
+\algnewcommand{\algorithmicreshape}{\textbf{reshape}}%
+\algnewcommand{\Reshape}{\algorithmicreshape~}%
+
+\algnewcommand{\algorithmicrecompute}{\textbf{compute}}%
+\algnewcommand{\Compute}{\algorithmicrecompute~}%
+
+\algnewcommand{\algorithmicreset}{\textbf{set}}%
+\algnewcommand{\Set}{\algorithmicreset~}%
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{comment}
+\usepackage{forest}
+\usepackage{float}
+
+\definecolor{light-gray}{gray}{.9}
+\definecolor{dark-gray}{gray}{0.60}
+
+\newcommand{\reducedstrut}{\vrule width 0pt height .9\ht\strutbox depth .9\dp\strutbox\relax}
+\newcommand{\chighlight}[1]{%
+  \begingroup
+  \setlength{\fboxsep}{.5pt}%  
+  \colorbox{light-gray}{\reducedstrut#1\/}%
+  \endgroup
+}
+
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing,calc}
+\newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};}
+
+\newcommand*{\AddNote}[4]{%
+    \begin{tikzpicture}[overlay, remember picture]
+        \draw [decoration={brace,amplitude=0.5em},decorate,ultra thick,red]
+            ($(#3)!(#1.north)!($(#3)-(0,1)$)$) --  
+            ($(#3)!(#2.south)!($(#3)-(0,1)$)$)
+                node [align=center, text width=2.5cm, pos=0.5, anchor=west] {#4};
+    \end{tikzpicture}
+}%
+
+
+\IfFileExists{mathpartir.sty}{%
+\usepackage{mathpartir}%
+}{}
+
+%%%%% LISTINGS package and setup
+\IfFileExists{listings.sty}{%
+\usepackage{listings}%
+}{}
+
+
+
+%% Get rid of ugly borders around PDF hyperlinks (e.g. for cross-references, bib entries, or URLs)
+\hypersetup{pdfborder = 0 0 0}
+
+%% You want microtype.
+\IfFileExists{microtype.sty}{%
+\usepackage[protrusion=true,expansion=true]{microtype}%
+}{}
+
+%\pagestyle{thesisdraft}
+
+\usepackage{afterpage}
+
+% Surround parts of graphics with box
+\usepackage{boxedminipage}
+
+%% booktabs (thx to Nate Rosenblum for bringing this beautiful package
+%% to my attention)
+\IfFileExists{booktabs.sty}{%
+\usepackage{booktabs}%
+}{}
+
+% This is now the recommended way for checking for PDFLaTeX:
+\usepackage{ifpdf}
+
+
+
+%% Substitute your favorite serif and sans fonts here....
+%\IfFileExists{tgpagella.sty}{%
+% TeX Gyre pagella, like Palatino
+%\usepackage{tgpagella}%
+%}{}
+
+\usepackage{ifthen}
+
+\providecommand\pdfforprinting{true}
+
+\ifthenelse{\equal{\pdfforprinting}{false}}{%
+\newenvironment{myrotatedtable}{%
+  \newgeometry{margin=1cm}%
+  \landscape%
+  \table[p]%
+}{%
+  \endtable%
+  \endlandscape%
+  \restoregeometry%
+}%
+}{%
+\newenvironment{myrotatedtable}{%
+    \begin{sidewaystable}%
+}{%
+    \end{sidewaystable}
+}%
+}%
+
+\usepackage{makeidx}
+\makeindex
+\makeglossaries
+
+{\theoremstyle{plain}
+\newtheorem{thm}{Theorem}[chapter]
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{define}[thm]{Definition}
+\newtheorem{exmpl}[thm]{Example}
+}
+{\theoremstyle{remark}
+\newtheorem{rmk}[thm]{Remark}
+}
+
+\newtheoremstyle{customsty1}
+{3pt}%
+{3pt}%
+{}% --- body font
+{}% --- indent amount
+{\bfseries}% --- Theorem head font
+{:}% --- Punctuation after head
+{.5em}% --- space after head
+{}% --- theorem head spec (can be left empty, meaning 'normal')
+
+% Define 'newtheorems' that use ``customsty1''
+{\theoremstyle{customsty1} 
+}
+
+% Some helper commands used in original source documents
+\newcommand{\newtext}[1]{#1}
+\newcommand{\oldtext}[1]{}
+\newcommand{\newmath}[1]{\ensuremath{#1}}
+\newcommand{\oldmath}[1]{}
+\newcommand{\addedfragile}[1]{#1}
+\renewcommand{\changed}[2]{\newtext{#1}\oldtext{#2}}
+
+
+
+
+%%% NB: the ``deposit'' chapter- and page- styles should conform to UW
+%%% requirements.  If you are producing a pretty version of your
+%%% dissertation for web use later, you will certainly want to make
+%%% your own chapter and page styles.
+
+\makechapterstyle{deposit}{%
+  \renewcommand{\chapterheadstart}{}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\parbox{2em}{\MakeLowercase{\Large\scshape\thechapter{}}} }
+  \renewcommand{\afterchapternum}{}
+  \renewcommand{\printchaptertitle}[1]{%
+  \raggedright\Large\scshape\MakeLowercase{##1}}
+  \renewcommand{\afterchaptertitle}{%
+  \vskip\onelineskip \hrule\vskip\onelineskip}
+}
+
+\makepagestyle{deposit}
+ 
+\makeatletter
+ 
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}}
+ 
+\makeevenfoot{deposit}{}{}{}
+\makeoddfoot{deposit}{}{}{}
+\makeevenhead{deposit}{\thepage}{}{}
+\makeoddhead{deposit}{}{}{\thepage}
+\makeatother
+
+%%% set up page numbering for chapter pages to satisfy UW requirements
+%%% NB: You will want to delete until the ``SNIP'' mark if you are
+%%% making a ``nice'' copy
+\copypagestyle{chapter}{plain}
+\makeoddfoot{chapter}{}{}{}
+\makeevenhead{chapter}{\thepage}{}{}
+\makeoddhead{chapter}{}{}{\thepage}
+%%% SNIP
+
+%%% bib nonsense
+\makeatletter
+\newenvironment{wb-bib}[1]{%
+  \chapter*{references}
+\ifnobibintoc\else 
+\phantomsection 
+\addcontentsline{toc}{chapter}{References} 
+\fi 
+\prebibhook
+  \begin{bibitemlist}{#1}}{\end{bibitemlist}\postbibhook}
+
+\AtBeginDocument{%
+  \@ifpackageloaded{natbib}{% natbib is loaded
+    \addtodef{\endthebibliography}{}{\vskip-\lastskip\postbibhook}
+    \@ifpackagewith{natbib}{sectionbib}{% with sectionbib option
+      \renewcommand{\bibsection}{\@memb@bsec}}%
+      {\renewcommand{\bibsection}{\@memb@bchap}}}%
+  {}
+  \@ifpackagewith{chapterbib}{sectionbib}{%
+    \renewcommand{\sectionbib}[2]{}
+    \renewcommand{\bibsection}{\@memb@bsec}}{}
+}
+\makeatother
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../dissertation"
+%%% End:

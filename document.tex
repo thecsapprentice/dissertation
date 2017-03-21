@@ -1,0 +1,910 @@
+%!TEX TS-program = pdflatex
+% dissertation.tex -- main dissertation file
+%
+% Wisconsin dissertation template
+% Copyright (c) 2008-2009 William C. Benton.  All rights reserved.
+%
+% This program can redistributed and/or modified under the terms
+% of the LaTeX Project Public License Distributed from CTAN
+% archives in directory macros/latex/base/lppl.txt; either
+% version 1 of the License, or (at your option) any later version.
+%
+% This program includes other software that is licensed under the
+% terms of the LPPL and the Perl Artistic License; see README for details.
+%
+% You, the user, still hold the copyright to any document you produce
+% with this software (like your dissertation).
+%
+\PassOptionsToPackage{dvipsnames}{xcolor} % prevent an option clash
+% Comment to insert real images
+\PassOptionsToPackage{draft}{graphicx}
+
+%%% You'll want ``oneside'' for the deposit version, but probably not for any versions that don't need to meet the UW requirements
+\documentclass[12pt,oneside,letterpaper]{memoir}
+
+\input{includes/preamble}
+\input{includes/defs}
+\input{includes/thesisdefs}
+\input{includes/modified_algo}
+
+\svnidlong{$LastChangedBy$}{$LastChangedRevision$}{$LastChangedDate$}{$HeadURL: http://freevariable.com/dissertation/branches/diss-template/dissertation.tex $} 
+
+\clearpage\pagenumbering{roman}  % This makes the page numbers Roman (i, ii, etc)
+
+\title{Techniques for Single System Integration of Elastic Simulation Features}
+\author{Nathan M. Mitchell}
+\department{Computer Sciences}
+
+\date{2016}
+
+\begin{document}
+
+%%% Uncomment the following if your .bib contains references that you will not 
+%%% explicitly cite, but that should be in the final bibliography:
+% \nocite{*}
+
+\ifpdf
+\DeclareGraphicsExtensions{.pdf, .jpg, .tif}
+\else
+\DeclareGraphicsExtensions{.eps, .jpg}
+\fi
+
+\maketitle
+
+%% Add \part declarations if you want, but it's not necessary
+%\part{Preliminaries}
+
+\include{frontmatter/frontmatter}
+
+\chapter{Introduction}
+
+Mankind has been seeking better methods to capture the human body and
+its pathologies for the purpose of healing since the earliest days of
+modern surgery. From the anatomical drawings of De Vinci, to more
+modern practices of constructing realistic simulacra, doctors, and
+their students, have been chasing tools that allow them to practice
+their skills before operating on real patients. Existing research
+shows the benefits of engaging in these practice
+sessions\cite{GallaRCHFMSS:2005}. Practiced surgeons make fewer
+mistakes and can use preparation sessions to plan new approaches
+safely.
+
+This general philosophy, which can be summed up with the classic
+proverb of ``measure twice, cut once'', is practiced by many high risk
+professions. From flight school to driving simulators, computer
+constructed virtual environments have become an integral part of
+training people. The reasoning is three-fold: computer simulations are
+relatively low cost and are able to be reset quickly, novel parameters
+and situations can be introduced more easily than physical
+environments, and a trainee's progress can be easily recorded for
+later review. With these advantages over purely physical training
+environments, why are surgeons still using aids such as diagrams,
+physical mannequins, and cadavers?
+
+The short answer is that they often lack any better
+alternatives. Performing surgery is a complex task involving a
+combination of dexterous and cognitive, often spatial reasoning,
+skills\cite{GallaRCHFMSS:2005}. Tools that support all of these areas
+are difficult to get right, and most attempts to build technological
+aids have focused on subsets of the skills required. Historically,
+these have been the dexterous skills, which many authors have tried to
+solve with a variety of haptic simulation
+techniques\cite{MendoL:2003,LindbT:2007}. While these surgical
+simulation philosophies are useful, and have been used in commercial
+products\cite{SUSAC:2002--2014}, they don't really meet the need of
+training cognitive skills. This need varies across surgical
+specialties - reconstructive plastic surgery, which is the focus of this document,
+requires the surgeon to have internalized geometrical intuitions in
+order to manipulate tissue in the three dimensional space of the human
+body. It is this lack that has kept traditional, less technological
+aides as the core of many plastic surgery training programs.
+
+In contrast to internal surgery, plastic surgery suffers from the
+practical reality that the results of any operation will be visible to
+others. This fact puts added pressure on surgeons to not only complete
+their tasks correctly, but also in an aesthetically pleasing way. It
+follows then that a simulator for plastic surgery operations must
+provide an environment for surgeons to freely practice design, as well
+as correctly display the outcomes.
+
+This dissertation aims to support the following statement: The creation
+of simulators for craniofacial reconstructive plastic surgery is now
+technically feasible. The craniofacial region, consisting of the scalp
+and face, has been chosen for since many operations can be performed
+by manipulating localized skin flaps. In pursuit of this goal, this document will
+describe how existing standard practices for simulating elastic
+materials can be combined in a holistic fashion, all with an eye
+towards performance and practical usability. In the process,
+limitations with the current approaches will be explored and, in some
+cases, alternative techniques will be proposed to solve issues
+stemming from the unique challenges found in plastic surgery simulators.
+
+
+\chapter{Motivation}
+
+In order to properly understand this dissertation, it is important to
+place it the proper context. While the driving topic of this document
+is simulation in the plastic surgery domain, the work presented here
+in this dissertation derives from more fundamental motivations. The
+goal of this chapter is to present a more complete motivation for the
+design decisions and technical contributions presented throughout this
+document.  In pursuit of this goal, the remainder of this chapter is
+divided into three sections: Simulation for Modern Medicine, Practical
+Interactive Systems, and Software Design. Of these, the second section
+is the longest, as it provides a philosophical framework for the rest
+of the document.
+
+\section{Medical Simulation}
+
+The first motivation sets the scene. Why go through the effort of
+building a complex, interactive simulation system? What could warrant
+the thousands of man-hours required to build such a piece of software?
+An argument that the act of building such a system is its own reward
+certainly does exist, and is explored more deeply in the second
+section, but is not what needs to be discussed first. Instead, we must
+provide a practical purpose which guides the evaluation of the final
+product. What is its real-world usefulness? How well does it
+accomplish the task it was designed for?  What are the fine grained
+aspects of the task? What features need to implemented (or perhaps
+more interestingly, not implemented)? Who are its users? All of these
+questions require an external guide to answer and are not addressed by
+pure software design issues.
+
+For this dissertation and the work described within, the external
+guide is that of plastic surgery. In particular, the software systems
+presented in this document are designed to support reconstructive
+plastic surgeons in describing craniofacial operations in a virtual
+environment. In later sections, more information about the technical
+details of this domain and what specific tasks this research helps
+address will be presented, but currently it is important examine the
+question: why. \textbf{Why medicine?} Concerns about improving healthcare are
+certainly not new phenomena in human society. From saving lives to
+simply improving quality of life, the more effective we can make
+doctors through technology benefits us all. \textbf{So why surgery?} Surgery is
+a complex discipline that requires a long period of committed
+training\cite{Chung:2005}. And since surgery is almost always the last resort of
+treatment, when an illness or condition has reached its most severe
+state, everyone wants their surgeon to be the best available. The
+combination of these two aspects will always create a high demand for
+experienced and practiced surgeons. However, research has shown that
+many residents complete surgical programs with no or limited first
+hand experience in many procedures\cite{BellBTRCBL:2009}. The goal of
+simulated aids is to provide other avenues for learning and practice beyond
+what is available in books, or through personal experience.\textbf{ So why
+reconstructive craniofacial plastic surgery?} In this case, the reasons are both
+humanitarian and technical.
+
+Reconstructive plastic surgery, as opposed to general cosmetic plastic
+surgery, is commonly performed after other surgeries as a
+post-operation corrective action. For example, when an individual is
+treated for skin cancer and has had a tumor removed, plastic surgery
+is often required to ``fix'' (i.e. close) the hole left over from the
+removal. Reconstructive plastic surgery is also used to correct for
+congenital deformities, often early in life. Pathologies such as cleft
+lip and palate, while now treatable, still require complex surgeries at a
+young age. Failure to do so, or performing interventions poorly, can
+leave a person with not only physical complications, but social and
+emotional issues. Plastic surgery, corrective or otherwise, deals with
+appearance and shape. These surgeries are tricky due to a dual set of
+requirements for success: not only must they solve the immediate
+technical problem (e.g. close a hole), but they must do so in the most
+aesthetically pleasing way. It is this aspect of plastic surgery that makes it
+very different from other forms of surgical practice, and also makes
+it very interesting for computer graphics research. It is also why
+there is a humanitarian need for computer technologies to aid
+physicians in training and practice: Given the severe psychological
+impact a poorly executed plastic surgery can cause, plastic surgeons
+should have as much experience as possible before performing any procedure
+on a live patient.
+
+
+
+\section{Practical Visual Interactive Systems}
+
+
+At a high level, the work I completed in support of my thesis falls under the description
+of a Practical Visual Interactive Systems, or PVIS. I am defining a
+PVIS as follows: A Practical Visual Interactive System is a dynamic
+virtual environment where by user input produces changes in state for
+the purpose of supporting some task. These systems are actually
+everywhere in our modern society, though we probably don't often think
+of them in these terms. Examples include video games, virtual avatar
+systems, training systems, and more. Over the course of this
+section, my goal is to define what a PVIS is and is not, talk briefly
+about some of the design challenges one might face when building them,
+and finally try to justify why their complexity is ultimately worth
+the effort in their creation.
+
+\subsection{PVIS Deconstruction}
+
+At its core, a PVIS is a virtual world, or environment. The size and
+scope of the environment is not important, instead one should focus on
+the fact that the environment \textit{is not real}. When discussing a PVIS, we
+are talking about artificially constructed settings, often completely
+described by a computer program and displayed via some
+device. However, this is not to say that a PVIS is completely
+disconnected from reality. As we will see later when we talk about
+tasks, a PVIS is often attempting to mimic real life.
+
+So what is a PVIS then? Is any virtual environment a PVIS? No, not
+really. Referring to the definition at the beginning of this section,
+a PVIS must adhere to several important properties. Some of these are
+more important than others however. 
+
+\begin{description}
+\item[Dimension] Most of the forms of PVIS that people interact with
+  today are displayed as 3D worlds. Full of rich and detailed 3D
+  models, this type of environment is often preferred when the goal is
+  to recreate some aspect of actual reality. However, I don't
+  necessarily restrict PVIS to three dimensions. The representation
+  of the environment is only important as far as it serves the purpose
+  of the PVIS.
+
+\item[Reactivity] A key aspect of a PVIS is that it holds some type of
+  state and this state can be changed by the user in response to their
+  interactions. This is vital to the system's ability to be
+  interactive as it separates the PVIS from a static diorama.
+
+\item[Dynamism] Often conflated with the aspect of reactivity, dynamism
+  brings in a temporal component to the PVIS. This moves the PVIS away
+  from a what otherwise might be a simple state machine, whose states
+  can be traversed in any order, to a system with a history. Whether
+  this aspect of history is permanent, where user input creates
+  indelible changes to the virtual environment, or flexible, giving a
+  user a timeline of consequences to move through, depends on the
+  ultimate purpose of the PVIS.
+
+\item[Interactivity] What separates a PVIS from a movie is the fact
+  that user input is a key aspect of using a PVIS. While a movie often
+  has simple controls, such as play, pause, rewind, interacting with a
+  PVIS requires a richer set of semantics. The closest example of a
+  PVIS movie would be a video game. While video games can often be
+  cinematic and heavily plot driven, the player's input is ultimately
+  responsible for driving the world forward in a fine grained way, as
+  opposed to simply pressing play.
+
+\item[Purpose] A PVIS without a purpose is not a PVIS. All of the
+  other aspects of a PVIS must work together to support the
+  purpose. The purpose of a PVIS helps define what features are
+  important and clarifies what metrics should be used to measure its
+  ultimate success. However, the reasons one might want a PVIS are
+  wide and varied. I've already touched on video games, whose purposes
+  might be to entertain or tell a story. But PVIS come in many forms,
+  for many purposes. A virtual meeting place, where participants exist
+  as avatars is a PVIS, and the ultimate purpose is to facilitate
+  communication between users. Professional disciplines also employ
+  PVIS for a variety of purposes, including training via simulators
+  and prototyping via computer aided design tools.
+      
+\end{description}
+
+\subsection{PVIS Challenges}
+
+Designing a Practical Visual Interactive System comes with a wide
+array of challenges, which is not especially surprising when
+considering how many components go into their makeup. In this section,
+these challenges will be reviewed, hopefully to give better context
+for the design decisions I have made for the rest of my work in this
+document.
+
+\subsubsection{No One Size Fits All?}
+
+When developing software, an oft times discussed design goal is
+re-useability. Whether this refers to reusing techniques or software
+modules varies, but in general the more reusable something can be
+made, the more useful it becomes. Designing a PVIS, however, imposes
+some interesting roadblocks for the principle of reusability. The
+first issue that often comes up is that the requirements for a PVIS,
+while they can appear similar on the surface (e.g. display a 3D
+environment, respond to user input, etc.), are often implemented
+with situtational specific optimizations due to the tight restrictions
+placed on such systems (e.g. near real-time performance, extremely
+complex environments, etc.). Developers faced with these issues can
+easily fall into the trap of \textit{blind optimization}, where they
+optimize the implementation, often quite expertly, for some aspect,
+but without considering the rest of the system, or how the system
+might be reused later\footnote{I think its important to distingiush this from
+\textit{premature optimization}, where the developer spends time
+optimizing an implementation before knowing if such effort is
+required. Blind optimization is justifiable, if perhaps unwise in a
+larger context. Premature optimization may end up being wasted effort
+at best, deterimental at worst.}.
+
+This is not to say that designing general purpose PVIS platforms is
+impossible. Game developers, over a long developmental history, have
+created many excellent general platforms for game development,
+referred to as game engines. But increasingly, these platforms, and
+the developers who design them, are becoming a field in their own
+right. While in the past, game developers may have done everything
+from writing low level graphics code to higher level game logic,
+modern games are often written by developers who know little about the
+low level optimizations required to reach the fidelty and performance
+expected of modern games. Instead, these skills and the software that
+results from their practice is found in game engines - highly tuned,
+carefully optimized systems which are not a game per se, but act as a
+solid foundation for games written on top of them. They provide
+\textit{services}: rendering, resource management, network support,
+user interface toolkits, and much more. In essence, this divide is not
+dissimilar to that of applications and operating systems. 
+
+The work I have done in this document generally follows this
+philosophy. As will be described in later sections, I have attempted
+to stick to two general principles when designing the systems
+presented here.
+
+\begin{enumerate}
+\item \textbf{Avoid Uncalled for Optimization} In short, when
+  designing my implementations, it was important to avoid optimizing
+  too soon. In many cases, there were open questions (and still are!)
+  that premature optimization could have prevented us from
+  understanding. Only when it was clear that optimization was needed,
+  were further steps taken, and taken in complete understanding of
+  their consequences on the rest of the system.
+
+\item \textbf{Enforce Clean Separation} As will be discussed in more
+  detail later, I have attempted to separate the domain specific
+  motivation, plastic surgery, from the underlying technologies that
+  enabled its simulation. This allowed me to design a coupled, but
+  seperable, system, where the components needed to build a plastic
+  surgery simulation were isolated from the components needed to build
+  a high performance finite element simulator.
+  
+\end{enumerate}
+
+
+\subsubsection{Realism and Believability}
+
+For the visual and virtual world aspect of a PVIS, one primary
+question that arises is one of  believability or realism. These
+concepts are often conflated, though they really should be considered
+separately. I view realism as a more direct measure of how much a user
+of the system sees what is being presented as an accurate simulacra of
+a real object or environment. In contrast, believability is the
+measure of how much a user trusts, or is willing to accept, the
+information being presented. Lets use modern special effects in
+movies, for an example. On one hand, special effects can be used to
+introduce elements that have direct real world counterparts, which 
+are either too expensive or impractical to use. Examples might include
+simulating a full ocean, using a green screen to replace environments,
+or full simulation of real people. If done well, these techniques
+increase realism, by convincing the audience that the elements being
+fabricated really exist. On the other hand, special effects can
+introduce clearly fantastical elements: mythical creatures, exotic
+environments, or magical effects. These are elements that even the
+least critical audience member would not hesitate to say are fake. But
+the goal here is not to trick them into believing something is real,
+but to convince them that its \textit{plausible}. That the fire breathing
+dragon, if it were to really exist, would look just like it does on
+the screen. This is the believability aspect at work. Of course, there
+is no reason that realism and believability can not work
+together. Examples include live action heroic characters being
+replaced by animated versions in order to have them perform impossible
+stunts. Here the result must be have realism (it looks like the real
+person), but also be believable (the impossible stunt looks like it
+could have been pulled off).
+
+So what does this mean for PVIS designs in general? And for medical
+simulation specifically? The primary issue with a PVIS is that of user
+input. While a movie can be scripted and refined until realism and
+believability is exactly where the actors and artists want it to be, a
+PVIS must produce similar levels of fidelity when faced with arbitrary
+user actions. Dealing with this challenge often requires domain
+specific knowledge in order to limit the potential space of user
+interactions. For example, in a surgery simulation, the user can't do
+absolutely anything to a section of simulated tissue. They are forced,
+by the context of the situation, to interact with it using the
+simulated tools provided: scalpels, sutures, etc... This allows a
+surgery PVIS to be engineered to properly handle all the potential
+outcomes of this restricted interface, to better produce realistic and
+believable results.
+
+%\subsection{Application Driven Design}
+
+
+
+
+\subsubsection{Design Conflicts}
+
+A major problem facing the construction of any PVIS is that of design
+goal conflicts. By this I am referring to the all too common situation
+where supporting one feature or aspect of a system, such as
+performance, comes into direct conflict with implementing another
+feature. Continuing with the performance example, suppose we wanted to
+impose a strict requirement on visual updates to the user. By doing
+so, we have restricted our updates with an upper bound on the maximum
+amount of work they can complete at any one time due to time
+restrictions. This choice may bias further choices towards the use of
+other techniques, not because of any technical merit, but of
+complexity.
+
+Many of these conflicting goals exist, some well known in general
+software design circles. In the context of physical simulation, there
+are several conflicts we need to be especially aware of.
+
+
+\paragraph{Reactivity Vs. Accuracy}
+I touched on general reactivity before when talking about what defines
+a PVIS. For simulation, we can use a more precise definition where the
+reactivity of a system refers to the time between a user applies some
+change to a simulated system (a force impulse, a constraint change,
+etc...) and when the user sees the result of the action. This cause
+and effect timing is the reactivity of the system. The smaller this
+time, the more reactive the simulation \textit{feels}. We can see this
+when comparing the simulation to real materials. For real objects, the
+reactivity is effectively infinite, as the time between cause and
+effect is extremely close to zero.
+
+Of course, real materials have an advantage that simulated materials
+do not. Because they are composed of individual atoms, real objects
+effectively act as a perfect finite element simulation, where the
+elements are almost infinitely small and operate completely in
+parallel to each other. Computer simulated materials are much coarser
+in their resolution and, despite great advances in parallel
+processing, do not come close to that naturally available in real
+materials. Thus, as we increase a simulated object's resolution in
+order to capture more and more detail, or use more complex elements
+that capture more interesting macroscopic effects, the overall
+reactivity of the simulation decreases as more effort is spent
+resolving each user action.
+
+The challenge is to find the appropriate balance between the desired
+reactivity of a simulation and the accuracy of the simulation. A major
+focus of my work has been to explore how both of these aspects can be
+increased simultaneously, both by exploiting underutilized parallelism
+opportunities and by looking at novel data structures to extract
+additional effective resolution without significantly doing so.
+  
+\paragraph{Domain Utility Vs. Generality}
+
+Another two aspects that often find themselves in conflict for
+physical simulation systems are the concepts of domain utility and
+generality. Lets look at domain utility first, as its the more
+straightforward of the two. In the simplest terms, domain utility
+refers to making design choices in a system that primary serve the
+specific task, or domain, that it is currently being built for. This
+may refer to choosing or discarding certain features, deciding what
+API best suits the current task, or making optimization along critical
+paths for the client application. All of these choices can be
+reasonable, even correct, as long as you never intend to reuse the
+system for any other purpose.
+
+Generality, on the other hand, asks what is the commonality of
+different tasks and guides design choices along this route. A general
+design should be flexible to different and changing requirements. Such
+a system typically eschews APIs built for specific tasks and instead
+tries to distill out the fundamental building blocks that any
+potential client may need from the system. The difficulties with this
+philosophy are two-fold. First, it isn't always obvious what the
+fundamental interfaces are, partially because designers by necessity
+must look at past applications to define them and are ignorant about
+future ones. But secondly, general designs often cannot make
+simplifying assumptions that domain specific knowledge provides and
+leaves them with overly complex code that tries to optimize for every
+use case or simpler code which doesn't optimize anything.
+
+So why would anyone design a general system? On the surface, they seem
+harder to build effectively and often don't result in well optimized
+solutions, impacting other aspects such as reactivity. The short
+answer is flexibility. For a well studied domain, where every last
+detail is known and accounted for, a specialized system is probably
+the best choice. But in order to answer challenging research
+questions, tools and problems often have to change quickly and in
+unexpected ways as researchers adapt to new findings and explore new
+directions. Medical simulation is very much one of these areas, where
+new questions are constantly arising and old preconceptions are
+abandoned. As such, I have made considerable effort to building
+generalized simulation systems, and attempting to identify which areas
+are ready for optimization and which are not.
+
+ 
+\subsection{Why Develop a PVIS?}
+
+At this point, a concerned reader may be asking why one should go
+through all the trouble of developing these types of systems. In the
+previous sections, I've described a complex series of requirements for
+PVIS construction, each challenging in isolation, let alone
+combined. On top of these technical features, I've also laid out
+various higher level issues, such as problems with generality, user
+acceptance, and correctness. Despite all of these problems, I maintain
+that developing PVIS style platforms is not only doable, but
+ultimately desirable. In order to understand my position, let me
+describe the three avenunes by which a PVIS creates value:
+As a Catalyst, By Filling a Need, and Intrinsically.  
+
+\subsubsection{Catalyst for Advances}
+
+As I've covered before, a reasoning about a PVIS is a complex task,
+implementing one is more so. In going about this process however, we
+have the potential to learn a lot. Anytime we have to adapt a PVIS to
+a new domain or integrate new functionality, we will ultimately
+generate questions and hopefully new answers. In this way, PVIS
+implementations are a generator for new research. Whether it is
+answering questions about rendering, human-computer interaction,
+systems, software design, optimization, or in the case of this thesis,
+physical simulation, a PVIS acts as a fertile soil within which we, as
+researchers, are able to experiment in many areas. But more than
+simply providing a platform to test isolated ideas, a PVIS is by its
+nature integrated. Any change affects and is affected by everything
+else, forcing researchers to take in and understand the big picture
+around their work and where it fits into the whole.
+
+\subsubsection{Utility Gap}
+
+The second reason that building a PVIS is often worthwhile is to fill
+a need. As I stated, a PVIS is, at its core, software with a
+purpose. In some cases, such as game development, many implementations
+of a PVIS have already been created, making the bar much higher as to
+the need for another one. But in other areas, such as medical
+simulation, the gaps in functionality coverage are more severe. To use
+the PVIS described by this document as an example, there have been
+many projects developing systems for laparoscopic organ surgery, for
+instance, but few systems for performing simulated plastic surgery,
+let alone a fully featured PVIS with a rich set of
+capabilities. Filling this gap with the utility provided by a PVIS is
+then extremely valuable, as without it practitioners are left behind in
+a world where their colleagues are more and more enjoying the benefits
+of modern computing technology.
+
+\subsubsection{Intrinsic Value}
+
+At a basic level, a PVIS itself is valuable. Even if we ignore the
+value of a PVIS in fulfilling its specified purpose, or the additional
+research that can be spawned as a result of its construction, building
+the PVIS is beneficial to its developers and the greater
+community. For the former, implementing a PVIS requires time,
+dedication, and skill - but no one enters and leaves such a project
+unchanged. Simply being a developer on a PVIS helps a developer become
+a better software engineer, simply through the long hours of practice
+they will spend on it. Beyond individual developers, building a PVIS
+is important to the community at large for the simple reason that it
+demonstrates that such a project can be done. Like all large pieces of
+software, sometimes the most important idea they can convey is that such a project is
+even feasible at all.
+
+% Let us break this down a little,
+% starting with the first and last words, Practical Systems. The first
+% important bit to notice is that I am using stating this in
+% plural. Often, when discussing a piece of academic work we describe it
+% in terms of its concrete contribution, and how this or that piece of
+% code acts as a proof-of-concept. While this is certainly valuable as a
+% method to convey new knowledge out into the world, I argue its less
+% useful overall than a more complex arrangement of parts that solve
+% real-world, practical problems. And I would further argue that a
+% single domain specific system is often insufficient, and actual
+% solutions require multiple interacting systems from a variety of
+% domains to be truly successful.
+
+% So what then are Practical \textit{Interactive} Systems? On a surface
+% level reading, this could refer to anything that allows user
+% interaction. However I would like to define a narrower scope, by
+% restricting the discussion to interactive graphical systems. An
+% excellent real-world example would be video games. A modern video game
+% generally consists of multiple interlocking systems from a variety of
+% disciplines: rendering, artificial intelligence, human computer
+% interaction, and networking. All of these systems however are working
+% towards one general goal: The display of a real-time interactive
+% virtual experience to one or multiple users simultaneously. Now of
+% course, all of these requirements come with caveats. For example,
+% real-time interactivity is generally understood to be not real-time,
+% but at a discreet frame-rate above some threshold. The important point
+% here is that for these systems to be truly practical to people, they
+% must merge the constraints imposed by interactivity and the complexity
+% of interacting parts to provide requisite functionality. Tying these
+% two pieces together, interactivity and complex systems, ultimately
+% returns us back to the first facet: good design.
+
+
+\section{Software Design}
+
+To start, let us examine the first facet, Software Design. Whole books have
+been written about this topic, many of which are full of valuable and
+insightful ideas. Its not my goal to claim any particular innovation
+or new vision for software design. Instead, I merely wish to lay clear
+how software design has served as a guiding focus during my
+research. All too commonly, research software is written quickly and,
+while not nessessarily shoddily, perhaps without careful attention to
+choices made that will later effect reusablity, maintainability, or
+debugging. While these issues affect any major software project, my
+experience has shown that the stresses associated with research often
+exhasbertate them. Strict deadlines and a constant push for new ideas
+can easily result in poor design choices. For these reasons, I have
+tried to instill good software design ideas into my work.
+
+What exactly is good software design? And more revelently, what is
+good design in the context of simulation software? I'll be touching on
+these questions more fully when I talk about the specific systems
+I implemented over the course of the research described in this
+document. In short, however, I think the primary goal of good design
+for simulation software should be to support the concept of
+Extensiblity Flexibility. What do I mean by that? In plain english, I
+mean that simulation software should be designed such that is it easy
+to add new features or use the software for new purposes without
+requiring large amounts of rewriting. This is especially important for
+research code, as required features are often unknown, or even
+unknowable when development begins on a project. Being able to
+continously reuse existing proven code as much as possible between projects
+allows researchers to develop quicker, hopefully with less bugs.
+
+
+\chapter{Related Work}
+
+Faced with the challenge of providing an interactive virtual
+environment for authoring plastic surgery simulations, the field of
+computer graphics research has generated many potential solutions and
+techniques to solve this problem. Procedural techniques
+\cite{JoshiMDGS:2007,WangP:2002,KavanCZO:2008} offer real-time
+performance for certain animation tasks but lack the physical accuracy
+needed in surgical simulations. Consequently, some research ventures
+into surgical simulation turned to elastic deformation models
+\cite{TerzoPBF:1987} that responded more realistically to scenarios of
+probing and cutting \cite{BroC:1996,MendoL:2003,NienhS:2001}. However,
+these early works were limited in their scope and effectiveness due to
+computational cost, geometric constraints and oversimplified material
+models. In this section we outline prior contributions that help
+address these limitations, and review a number of existing surgical
+simulation systems.
+
+\section{Simulation of Elastic Materials}
+
+Simulation of elastic deformable models is ubiquitous in computer
+graphics and remains a vibrant area of research. Algorithmic
+techniques for deformable body simulation, pioneered by Terzopoulos et
+al \shortcite{TerzoPBF:1987} have attained a significant level of
+maturity, leading to broad adoption in visual effects, games, virtual
+environments and biomechanics applications. However, numerous
+theoretical and technical challenges remain. Research efforts often
+emphasize improved computational performance for cost-conscious
+interactive applications. Simulation of complex materials and concerns
+about accuracy and fidelity, especially in biomechanics applications,
+place additional strain on simulation techniques. Finally, ease of use
+and deployment in production environments is an important trait that
+scholarly research work needs to be sensitive to. Our paper proposes a
+grid-based simulation technique with a number of original components
+that enhance performance and parallelism, natively accommodate complex
+materials (including skin, flesh and muscles) while offering the
+simple and familiar front-end of a lattice deformer for easy
+integration into an animation pipeline.
+
+Lattice-based volumetric deformers are popular components in both
+physics-based and procedural animation techniques. In the case of
+physics-based simulation, one of their key advantages is that they
+avoid having to construct a simulation-ready conforming volume mesh,
+which is a delicate preprocessing task often requiring supervision and
+fine-tuning. Another crucial benefit is that the regularity of such
+data structures enables aggressive performance optimizations as
+vividly demonstrated by shape matching techniques
+\cite{RiverJ:2007}. Cartesian lattices have also been leveraged to
+accelerate performance in physics-based approaches, albeit
+predominantly for simple models such as linear or corotated elasticity
+\cite{MuellTG:2004,GeorgW:2008,McAdaZSETTS:2011}. Prior graphics work,
+however, has not demonstrated such aggressive performance gains from
+lattice-based discretizations when highly nonlinear, anisotropic or
+incompressible materials are involved. In part, this is attributed to
+the fact that simulation of complex materials commands an increased
+level of attention to issues of robust convergence and reliable
+treatment of incompressibility. Mature solutions to these concerns
+have predominantly been demonstrated in the context of specific
+discretizations (e.g. explicit tetrahedral meshes) where regularity of
+data structures, compactness of memory footprint and
+parallelization/vectorization potential were not inherently
+emphasized. Furthermore, as applications requiring the use of complex
+materials are also likely to emphasize geometric accuracy, they often
+opt for conforming mesh discretizations due to their superior
+performance in capturing intricate boundary features, even if their
+computational cost is higher.
+
+The use of non-conforming meshes has valuable benefits for fracture
+modeling, but embedded techniques have also been used in their own
+right for reasons of simplicity and performance. Mueller et al.\!
+\shortcite{MuellTG:2004} employed an embedding scheme to perform
+volumetric simulation of objects described by their boundary mesh. The
+regularity of lattice embeddings has also been exploited in shape
+matching techniques \cite{RiverJ:2007} to achieve significant
+performance accelerations. Embedding has been combined with
+homogenization \cite{NesmePF:2006,KhareMOD:2009} to resolve
+sub-element variation of material parameters, optionally with the use
+of non-manifold embedding lattices to support objects with a branching
+structure \cite{NesmeKJF:2009}.  Jerabkova et al.\!
+\shortcite{JerabBBFA:2010} employed a method similar to our own, using
+a finer voxel grid to capture material topology to be embedded in a
+coarser, non-manifold voxel grid. Finally, Zhao and Barbi\v{c}
+\shortcite{ZhaoB:2013} demonstrated the use of multiple voxel grid
+domains to segment a model hierarchically, which they used to simulate
+plants at interactive rates. In addition to classical FEM approaches,
+some authors have achieved success with more exotic
+variations. Extended FEM (XFEM) formulations have also been explored
+\cite{JerabK:2009}, where discontinuities are introduced into the
+element's shape functions, to model cutting. In a similar vein,
+Kaufmann et al.\!  \shortcite{KaufmMBG:2009} used discontinuous
+Galerkin FEM formulations. Others have dispensed with mesh based
+discretizations completely, preferring meshless methods
+\cite{DeB:2000} which were also used for surgical simulation
+\cite{DeKLS:2005}.
+
+\section{Anatomical Modeling}
+Approaches based on the Finite Element Method (FEM) have been
+particularly popular in the medical simulation community
+\cite{MarchADC:2008} where the need for biologically accurate
+materials is more pronounced. In one of the earliest uses of advanced
+materials in computer animation, Chen and Zeltzer
+\shortcite{ChenZ:1992} focused on anatomical structures such as
+muscles. FEM techniques were further leveraged in the animation
+literature for the discretization of linear elasticity for fracture
+modeling in a small-strain regime \cite{OBriH:1999}. Highly nonlinear
+materials such as active musculature \cite{TeranBHF:2003} exposed
+challenges in robustness and numerical stability of FEM
+discretizations. Invertible FEM \cite{IrvinTF:2004} improved
+simulation robustness in scenarios involving extreme compression,
+while modified Newton methods \cite{TeranSIF:2005} reduced the cost of
+implicit schemes with large time steps. Several of these algorithms
+have been incorporated in open-source modeling and simulation packages
+\cite{SinSB:2013}. Solutions have also been proposed for material
+behaviors such as incompressibility \cite{IrvinSF:2007} and
+viscoelasticity \cite{GokteBO:2004,WojtaT:2008}, both of which can be
+found in typical biomaterials.  Recent results in coupled
+Lagrangian-Eulerian simulation of solids have also facilitated the
+inclusion of intricate contact and collision handling in biomechanical
+modeling tasks \cite{SuedaKP:2008,LiSNP:2013,FanLP:2014}.
+
+\section{Topology Change}
+
+A number of techniques have targetted topology change during
+simulation, due to cutting or fracture. Early work \cite{TerzoF:1988b}
+resorted to breaking connectivity of elements when stress limits were
+exceeded. Later methods \cite{NienhS:2001} split tetrahedra near cut
+boundaries and then used vertex snapping to more accurately
+approximate the cut. Local remeshing was also employed to simulate
+cracks in brittle materials \cite{OBriH:1999}. An issue with such
+subdivision schemes is the possible creation of poorly conditioned
+elements, which prompted a number of authors to pursue embedded
+simulation schemes \cite{MolinBF:2004,TeranSBNLF:2005}. These
+techniques use non-conforming meshes with elements which are only
+partially covered by material, in lieu of conforming
+remeshing. Embedded simulation can provide a great degree of
+flexibility in cutting and fracture scenarios \cite{SifakDF:2007},
+although cutting meshes along arbitrary surfaces requires delicate
+book-keeping and careful handling of degeneracies.
+
+
+\section{Surgical Simulation}
+While much of the previously discussed work is geared towards general
+elastic body simulation in computer graphics, many relevant results
+originated in surgery-specific work. Pieper et al.\!
+\shortcite{PiepeLR:1995} demonstrated a very early surgical simulation
+platform for facial procedures, using FEM elastic shells.  Many
+surgical simulation projects focus on the mechanical manipulation of
+organs and other soft internal objects
+\cite{NienhS:2001,KimCDS:2007}. Even expensive commercial simulators
+like the Lap Mentor and GI Mentor primarily focus on pushing and
+cutting simulated internal organs
+\cite{SUSAC:2002--2014b,SUSAC:2002--2014}. These types of simulations
+are so common that several open source frameworks have been built to
+specifically support further development
+\cite{AllarCFBPDDGo:2007,CavusGT:2006}. These provide easy access to
+common components like haptic feedback and APIs to connect multiple
+simulated components. Certain surgical simulation systems are tailored
+to specific skills, including interactive simulations of needle
+insertion \cite{ChentARCHGSO:2009}.
+
+\section{Performance Optimization}
+Improving simulation rates is a common challenge for many interactive
+modeling tasks, and even more so for accuracy-conscious applications
+such as virtual surgery. Attempts to improve performance have either
+relied on new data structures, faster solvers, or aggressive use of
+parallelization.  The Boundary Element Method \cite{JamesP:1999} has
+been used to achieve interactive deformation rates for objects
+manipulated via their surface.  Hermann et al.\!
+\shortcite{HermaRF:2009} analyzed data flow in their simulations to
+inform a parallel scheduler for multicore systems. To avoid write
+hazards during parallel code execution, Kim et al.\!
+\shortcite{KimP:2011} proposed a system of computation phases with
+coalesced memory writes, which allowed them to parallelize force
+computation. Related efforts by Courtecuisse and Allard
+\shortcite{CourtA:2009}, developed a parallel version of the
+Gauss-Seidel algorithm that can run on GPUs. Regular discretizations
+have also been coupled with multigrid solvers to facilitate GPU
+accelerations for elastic skinning techniques \cite{McAdaST:2010}.
+However, in spite of the efficiency of multigrid schemes, adapting
+them to the presence of incisions or other intricate topological
+features can be a nontrivial proposition.
+
+The need for efficient, ideally interactive simulation of deformable
+bodies has been catered to by several procedural techniques
+\cite{JoshiMDGS:2007,KavanCZO:2008,VaillBGCRWGP:2013}, although when
+fidelity and realism is the objective, physics-based methods are
+typically employed \cite{TerzoPBF:1987}. The Finite Element Method has
+been very popular in this aspect, and various authors have
+successfully used it to animate a diverse spectrum of behaviors
+\cite{OBriH:1999,TeranBHF:2003,IrvinTF:2004}.
+ 
+Grid-based, embedded elastic models
+\cite{MuellTG:2004,NesmePF:2006,McAdaZSETTS:2011,PatteMS:2012,MitchCS:2015}
+have been very popular due to their inherent potential for performance
+optimizations, and can also be used with shape-matching approaches
+\cite{RiverJ:2007}. They form the foundation for a class of highly
+efficient, multigrid-based numerical solution techniques
+\cite{ZhuSTB:2010,GeorgW:2008,DickGW:2011}.
+
+Authors have sought to accelerate simulation performance via a number
+of avenues, including the use of optimized direct solvers
+\cite{SinSB:2013} and delayed updates to factorization approaches
+\cite{HechtLSO:2012}. Others have sought to leverage the Boundary
+Element Method \cite{JamesP:1999} to approach real-time deformation
+and similar formulations that abstract away interior degrees of
+freedom to accelerate collision processing \cite{GaoMS:2014}. Our
+method has significant ties to these approaches, as well as the
+general class of Schur complement methods \cite{QuartV:1999}. In our
+present work, we leverage such a formulation to aggregate local
+neighborhoods of simulation elements into composite elements that
+interface with the simulation system exclusively via their boundary.
+
+\section{Collision Handling}
+
+Level set methods were first introduced by Osher and
+Sethian~\shortcite{OsherS:1988} for tracking moving interfaces in the
+context of Hamilton-Jacobi equations.  Subsequently, Adalsteinsson and
+Sethian~\shortcite{AdalsS:1994} proposed substantial runtime savings
+by restricting computations to a thin band of active voxels near the
+interface.  Sethian~\shortcite{Sethi:1998} proposed fast marching
+methods for monotonically advancing fronts as well as for redistancing
+the level set using values seeded only on the narrow band.  Besides
+fast computation, a number of methods have also been proposed for
+efficiently storing level sets including octrees~\cite{LosasGF:2004},
+RLE representations~\cite{HoustNBNM:2006,IrvinGLF:2006,ChentM:2011},
+the VDB data structure~\cite{Muset:2013} which evolved from Dynamic
+Tubular Grids~\cite{NielsM:2006} and the DB+Grid data
+structure~\cite{Muset:2011}, and the virtual-memory based SPGrid data
+structure~\cite{SetalABS:2014}.
+
+Methods have been proposed for computing implicit representations of
+non-manifold surfaces~\cite{BloomF:1995,YuanYW:2012}. Similar ideas
+were used for simulating bubbles~\cite{ZhengYP:2006} and multiphase
+fluids~\cite{LosasSSF:2006}. Our work diverges from these approaches
+as we enhance the expressive capability of a \emph{single} level set
+by embedding signed distance values on an explicit mesh. Our work is
+related to the practice of embedding high-resolution geometry in
+regular meshes, a concept that was first leveraged by M\"{u}ller et
+al.~\shortcite{MulleTG:2004} for deformable body simulations and
+fracture.  In addition to hexahedral embeddings, methods such as the
+virtual node algorithm~\cite{MolinBF:2004} have been used to create
+non-manifold tetrahedral lattices that correspond to thin topological
+features in the embedding geometry. Virtual node concepts are also
+similar to XFEM methods which were used for crack
+modeling~\cite{MoeesDB:1999} and for cutting and fracturing thin
+shells~\cite{KaufmMBGG:2009}. This principle has continued to evolve
+with many of the topological limitations in prior approaches being
+raised by Sifakis et al.~\shortcite{SifakDF:2007} and has been
+successfully used in production tools as well~\cite{HellrSSST:2009}.
+
+Our non-manifold level set approach is inspired by these methods, but
+it needs to be made cognizant of further topological limitations that
+the signed distance field imposes on our representation (see
+Section~\ref{sec:non-manifold-level-sets}). Notably, when dealing with
+collisions near thin features, all of the aforementioned approaches
+employed detection and response techniques based on surface
+meshes~\cite{BridsFA:2002} that rely on the availability of good
+surface meshes, are computationally expensive, presume collision-free
+history or use impulses which makes implicit integration
+challenging. To accelerate collision detection and response while
+allowing for implicit integration, methods have been proposed using
+implicit surface representations~\cite{McAdaZSETTS:2011} which work
+even in near-interactive settings, but require enough level set
+resolution to avoid any non-manifold features altogether. Recently,
+image-based techniques~\cite{FaureBAF:2008,WangFP:2012} have been
+proposed which provide an interesting alternative.  Finally, implicit
+surfaces have also been recently used in real-time skinning
+applications~\cite{VaillBGCRWGP:2013,VaillGBWC:2014}.
+
+\bibliographystyle{unsrt}
+\bibliography{references4}
+
+%% Now the glossary
+%\glossarystyle{altlistgroup}
+%\glsaddall
+%\printglossaries
+
+%% Want an index?  Neither did I.
+%\printindex
+
+\end{document}
+

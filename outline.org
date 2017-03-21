@@ -1,0 +1,67 @@
+* Introduction
+** Thesis Statement
+   - The creation of simulators for virtual craniofacial surgery are now technically feasible.
+* Related Work
+** Elasticity
+** Virtual Surgery
+** Collisions
+** Solvers
+** Materials
+** Toopology Change
+* Virtual Surgery
+** Scope
+*** Clinical tasks
+*** Elastic Simulation
+*** Deployment and  Use Experience
+* Components
+** Embedded Simulation
+*** Lattice Discretization Basics
+*** Hybrid Mesh/Lattice 
+*** Discretization Options
+**** First Order Boundary Treatment
+***** Stabilization 
+**** Second Order-Boundary Treatment
+***** Quadrature Point Selection
+*** Changes for Material Models
+**** Reformulation for Incompressibility
+**** Muscle Model
+*** Dynamics
+** Collision Handling
+*** Penalty Based Method & Levelsets
+**** Related Work
+*** Non-Manifold Levelsets
+**** Comparison with Hybrid Mesh Concept
+**** Construction Process
+**** Backtracing
+**** Discusion and Limitations
+** Acceleration
+*** SIMD Basics
+*** Streaming Kernels
+**** Kernel Design
+***** Number Class
+**** Discussion on Data Movement
+**** Performance Results
+*** Macroblocks
+**** Basic Intutions
+**** Schur-Complement Matrix Solver
+**** Heirarchical Structure
+**** Performance Results
+*** Discussion 
+**** Potential Joining of Streaming Kernels / Macroblocks
+**** Macroblock Limiations
+***** Non-manifold Topology
+***** Self collisions
+** Deployment
+*** Introduction and Requirements
+*** Design
+**** Client
+***** C++
+***** WebGL
+***** Electron
+**** Host
+***** Communication Protocols
+***** Tasks
+****** Cutting
+**** Accelerator
+***** MPI Design Implications
+* Discussion

@@ -1,0 +1,32 @@
+* Thesis Statement Notes
+** Goals
+   - Exploring simulation of plastic surgery flap operations on isolated regions and the scalp
+   - Exploring potential performance opportunities stemming from lattice based deformers
+   - Understanding issues and challenges with designing and deploying simulation tools in practical settings
+** Deliverables / Results
+   - A software artifact: Authoring tool for designing educational representations of surgical operations
+     - High performance elastic simulation
+     - Support for topological cutting
+     - Support for advanced, nonlinear material models
+     - Support for rigid body collisions
+     - Distributed deployment model with multiple simultaneous web front-ends
+   - Approval / excitement of domain expert
+   - Several peer-reviewed papers covering core technologies
+     - Advanced material models with lattice deformers (Patterson 2012)
+     - Supporting high performance surgical simulation (Mitchell 2015)
+     - Non-manifold levelsets for high performance self collisions (Mitchell 2015)
+     - Optimized schur-complement block solvers for lattice deformers (Mitchell 2016)  
+   - Feasibility demo demonstrating core software functionality and deployment design
+** Revision notes (March 16 2017)
+   - dimension (geometry?) geometry and space, materiality
+   - purpose - enumerate concrete, but disjoint examples
+   - challanges come after specific example (they make more sense)
+      - Cater to needs, talk about medical simulation, talk about concrete and abstract, and how the abstract connects with specific instance
+      - utility
+	- observing behaviors recognising patterns
+	  - if these are useful, does our reconstruction match these real properties
+	  - visual - identitgy landmarks
+        - need to comprise, where and when?
+          - utility, what is important to us
+        - not all comprises are equal
+   
