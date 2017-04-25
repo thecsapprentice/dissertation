@@ -29,4 +29,52 @@
         - need to comprise, where and when?
           - utility, what is important to us
         - not all comprises are equal
+** Revision notes (March 28 2017)
+   How does what I've done support generality over what a system specifically designed for surgery
+
+   Blocking = preserve applicability for other systems.
+
+   Problem dissection
+
+      largely didatic, peel away layers, arrive at numerical challenges
+
+      deforming solid that reacts to internal mechanics and external stimuli
+
+         state representation / continous? / discrete?
+            pertantant mechanical properties: position, velocity? 
+
+	    dynamic / quasistatic / static
+            Time as a first class citizen
+            slowing down external stimuli - playback at high speed.
+            quasi-static - time-independent
+
+        reference configugration
+          alternatives ? particles, mesh, 
+          vs. texture mapping, texture coordinates
+          how to choose? does not need to map to zero energy configuration
+
+        user interactions
+         topology actions
+         position constraints
+         force constraints
+         contact constraints
+
+       discretization
+          why? no anaylitcal description
+          how to move from continuous to discrete
+          what is our base discrete element? Cube, tet, something more exotic?
+          Is material exact vs embededed (conforming)
+
+** Revision notes (April 25 2017)
+
+   (3.1) Second paragraph - purpose
+
+   Last paragraph - perhaps state less alternatives, focus more on our model.
+
+   (3.2) deformation defination 
+        continous collection of material points with some glue between them
+
+        reference configuration serves as a name space for labeling material points
+        also used as shape, if material is placed in, which exhbits no mechanical response
+
    

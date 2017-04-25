@@ -25,6 +25,7 @@
 \input{includes/preamble}
 \input{includes/defs}
 \input{includes/thesisdefs}
+\input{includes/technical_terms}
 \input{includes/modified_algo}
 
 \svnidlong{$LastChangedBy$}{$LastChangedRevision$}{$LastChangedDate$}{$HeadURL: http://freevariable.com/dissertation/branches/diss-template/dissertation.tex $} 
@@ -128,155 +129,300 @@ is simulation in the plastic surgery domain, the work presented here
 in this dissertation derives from more fundamental motivations. The
 goal of this chapter is to present a more complete motivation for the
 design decisions and technical contributions presented throughout this
-document.  In pursuit of this goal, the remainder of this chapter is
-divided into three sections: Simulation for Modern Medicine, Practical
-Interactive Systems, and Software Design. Of these, the second section
-is the longest, as it provides a philosophical framework for the rest
-of the document.
-
-\section{Medical Simulation}
-
-The first motivation sets the scene. Why go through the effort of
-building a complex, interactive simulation system? What could warrant
-the thousands of man-hours required to build such a piece of software?
-An argument that the act of building such a system is its own reward
-certainly does exist, and is explored more deeply in the second
-section, but is not what needs to be discussed first. Instead, we must
-provide a practical purpose which guides the evaluation of the final
-product. What is its real-world usefulness? How well does it
-accomplish the task it was designed for?  What are the fine grained
-aspects of the task? What features need to implemented (or perhaps
-more interestingly, not implemented)? Who are its users? All of these
-questions require an external guide to answer and are not addressed by
-pure software design issues.
-
-For this dissertation and the work described within, the external
-guide is that of plastic surgery. In particular, the software systems
-presented in this document are designed to support reconstructive
-plastic surgeons in describing craniofacial operations in a virtual
-environment. In later sections, more information about the technical
-details of this domain and what specific tasks this research helps
-address will be presented, but currently it is important examine the
-question: why. \textbf{Why medicine?} Concerns about improving healthcare are
-certainly not new phenomena in human society. From saving lives to
-simply improving quality of life, the more effective we can make
-doctors through technology benefits us all. \textbf{So why surgery?} Surgery is
-a complex discipline that requires a long period of committed
-training\cite{Chung:2005}. And since surgery is almost always the last resort of
-treatment, when an illness or condition has reached its most severe
-state, everyone wants their surgeon to be the best available. The
-combination of these two aspects will always create a high demand for
-experienced and practiced surgeons. However, research has shown that
-many residents complete surgical programs with no or limited first
-hand experience in many procedures\cite{BellBTRCBL:2009}. The goal of
-simulated aids is to provide other avenues for learning and practice beyond
-what is available in books, or through personal experience.\textbf{ So why
-reconstructive craniofacial plastic surgery?} In this case, the reasons are both
-humanitarian and technical.
-
-Reconstructive plastic surgery, as opposed to general cosmetic plastic
-surgery, is commonly performed after other surgeries as a
-post-operation corrective action. For example, when an individual is
-treated for skin cancer and has had a tumor removed, plastic surgery
-is often required to ``fix'' (i.e. close) the hole left over from the
-removal. Reconstructive plastic surgery is also used to correct for
-congenital deformities, often early in life. Pathologies such as cleft
-lip and palate, while now treatable, still require complex surgeries at a
-young age. Failure to do so, or performing interventions poorly, can
-leave a person with not only physical complications, but social and
-emotional issues. Plastic surgery, corrective or otherwise, deals with
-appearance and shape. These surgeries are tricky due to a dual set of
-requirements for success: not only must they solve the immediate
-technical problem (e.g. close a hole), but they must do so in the most
-aesthetically pleasing way. It is this aspect of plastic surgery that makes it
-very different from other forms of surgical practice, and also makes
-it very interesting for computer graphics research. It is also why
-there is a humanitarian need for computer technologies to aid
-physicians in training and practice: Given the severe psychological
-impact a poorly executed plastic surgery can cause, plastic surgeons
-should have as much experience as possible before performing any procedure
-on a live patient.
-
+document.  In pursuit of this goal, this chapter will describe an
+overarching framework for Practical Visual Interactive
+Systems. Throughout, both high level design goals and challenges will
+be discussed, along with specific examples which relate to plastic surgery.
 
 
 \section{Practical Visual Interactive Systems}
 
 
-At a high level, the work I completed in support of my thesis falls under the description
-of a Practical Visual Interactive Systems, or PVIS. I am defining a
-PVIS as follows: A Practical Visual Interactive System is a dynamic
+At a high level, the work completed in support of this thesis falls under the description
+of a \Gls{pvis}. A Practical Visual Interactive System \textit{is a dynamic
 virtual environment where by user input produces changes in state for
-the purpose of supporting some task. These systems are actually
-everywhere in our modern society, though we probably don't often think
+the purpose of supporting some task}. These systems are actually
+everywhere in our modern society, though we do not often think
 of them in these terms. Examples include video games, virtual avatar
-systems, training systems, and more. Over the course of this
-section, my goal is to define what a PVIS is and is not, talk briefly
-about some of the design challenges one might face when building them,
-and finally try to justify why their complexity is ultimately worth
-the effort in their creation.
+systems, training systems, and more. This section's goal is to define
+what a \gls{pvis} is and is not. This deconstruction will be followed
+by a examination of the challenges that exist when developing a
+\gls{pvis} along with specific examples from plastic surgery
+domain. Finally, a justification will be made, which will show that
+\gls{pvis} development is warranted, despite the complexities involved.
 
 \subsection{PVIS Deconstruction}
 
-At its core, a PVIS is a virtual world, or environment. The size and
-scope of the environment is not important, instead one should focus on
-the fact that the environment \textit{is not real}. When discussing a PVIS, we
-are talking about artificially constructed settings, often completely
+The core of a \gls{pvis} is a virtual world, or environment. The size
+and scope of the environment is less important than the fact that the
+environment \textit{is not real}. When discussing a \gls{pvis}, we are
+talking about artificially constructed settings, often completely
 described by a computer program and displayed via some
-device. However, this is not to say that a PVIS is completely
-disconnected from reality. As we will see later when we talk about
-tasks, a PVIS is often attempting to mimic real life.
+device. However, a \gls{pvis} is not completely disconnected from
+reality. In order to support a user in a particular task, a \gls{pvis}
+is often designed to mimic real life situations.
 
-So what is a PVIS then? Is any virtual environment a PVIS? No, not
-really. Referring to the definition at the beginning of this section,
-a PVIS must adhere to several important properties. Some of these are
-more important than others however. 
+Returning to the definition above, is it appropriate to
+declare any virtual environment a \gls{pvis}? Not exactly - a careful
+reading of the proposed definition reveals that a \gls{pvis} is
+structured according to a series of important properties, or \textit{aspects}.
 
 \begin{description}
-\item[Dimension] Most of the forms of PVIS that people interact with
-  today are displayed as 3D worlds. Full of rich and detailed 3D
-  models, this type of environment is often preferred when the goal is
-  to recreate some aspect of actual reality. However, I don't
-  necessarily restrict PVIS to three dimensions. The representation
-  of the environment is only important as far as it serves the purpose
-  of the PVIS.
+\item[Geometry] Most of the forms of \glspl{pvis} that people interact
+  with today are displayed as 3D worlds. Full of rich and detailed 3D
+  models, this environment type often is preferred when the goal is to
+  recreate some aspect of actual reality. However, a \gls{pvis}'s
+  environment should not be restricted to one in three dimensions. A
+  designer should choose the environment's representation according to
+  the utility they wish to extract from a \gls{pvis}. In addition to
+  representation, it is also important to consider a \gls{pvis}'s
+  interface. But whether a \gls{pvis} is designed around a standard
+  desktop computer monitor, or a new virtual reality \gls{hmd}, it is
+  important to prevent the choice of technology from overshadowing
+  other aspects of the \gls{pvis}. The particular interface should be
+  chosen with care in order to augment, not detract from, the utility of
+  the system for its users.
 
-\item[Reactivity] A key aspect of a PVIS is that it holds some type of
-  state and this state can be changed by the user in response to their
-  interactions. This is vital to the system's ability to be
-  interactive as it separates the PVIS from a static diorama.
-
+\item[Reactivity] A \gls{pvis} should hold state and allow its
+  users to change this state meaningfully via interactions with the system. This
+  aspect critically enables many other useful properties of a
+  \gls{pvis}. First, it brings an important property of determinism
+  to the system. Instead of static or random reactions, users should
+  expect their actions will produce understandable (yet not
+  necessarily simple!) consequences. Second, this property defines the rules of
+  the \gls{pvis}, which are important both to the designer and the
+  user. The designer needs to understand the rules in order to make
+  informed choices and compromises in development (more on this
+  later). The user of the system needs the rules, even implicitly
+  stated, to gain intuitions and learn how to use the system. If these
+  rules faithfully replicate real world behaviors, the user may be
+  able to translate knowledge learned from the \gls{pvis} into the
+  physical world.
+  
 \item[Dynamism] Often conflated with the aspect of reactivity, dynamism
-  brings in a temporal component to the PVIS. This moves the PVIS away
+  brings in a temporal component to the \gls{pvis}. This moves the \gls{pvis} away
   from a what otherwise might be a simple state machine, whose states
   can be traversed in any order, to a system with a history. Whether
-  this aspect of history is permanent, where user input creates
+  this history property is permanent, where user input creates
   indelible changes to the virtual environment, or flexible, giving a
-  user a timeline of consequences to move through, depends on the
-  ultimate purpose of the PVIS.
+  user a timeline of consequences to move through at will, depends on the
+  ultimate purpose of the \gls{pvis}. 
 
-\item[Interactivity] What separates a PVIS from a movie is the fact
-  that user input is a key aspect of using a PVIS. While a movie often
-  has simple controls, such as play, pause, rewind, interacting with a
-  PVIS requires a richer set of semantics. The closest example of a
-  PVIS movie would be a video game. While video games can often be
-  cinematic and heavily plot driven, the player's input is ultimately
-  responsible for driving the world forward in a fine grained way, as
-  opposed to simply pressing play.
+\item[Interactivity] While the aspects of reactivity and dynamism work
+  together to create complex systems of internal state for a
+  \gls{pvis}, they don't cover \textit{how} a user interacts with the
+  system. While a movie could be construed as a very simple
+  \gls{pvis}, whose state is the current frame and only dynamic
+  behavior is to advance the frame, typically interacting with a
+  \gls{pvis} is more semantically rich than a set of actions like
+  play, pause and stop. More complex interactions can be found in
+  advanced \glspl{pvis}, such as video games and training
+  simulators. Here, interactions are designed to replicate the look
+  and feel of real controls, or exist to immerse a user into the world
+  by allowing them to embody a virtual character through movement or
+  speech. These advanced modes serve to both increase the realism of
+  the system and to give the user a more comfortable or familiar set
+  of mental tools to think about the system with.
 
-\item[Purpose] A PVIS without a purpose is not a PVIS. All of the
-  other aspects of a PVIS must work together to support the
-  purpose. The purpose of a PVIS helps define what features are
-  important and clarifies what metrics should be used to measure its
-  ultimate success. However, the reasons one might want a PVIS are
-  wide and varied. I've already touched on video games, whose purposes
-  might be to entertain or tell a story. But PVIS come in many forms,
-  for many purposes. A virtual meeting place, where participants exist
-  as avatars is a PVIS, and the ultimate purpose is to facilitate
+\item[Purpose] A \gls{pvis} without a purpose is not a \gls{pvis}. The
+  \gls{pvis}'s purpose helps define what features are important and
+  clarifies what metrics should be used to measure its ultimate
+  success. All of the other aspects of a \gls{pvis} must work together
+  to support this purpose.  However, the reasons one might want a
+  \gls{pvis} are wide and varied. Video games have already been
+  mentioned, whose purposes might be to entertain or tell a story. But
+  \glspl{pvis} come in many forms, for many purposes. A virtual
+  meeting place, where participants exist as avatars in a virtual
+  environment is a \gls{pvis}, and the purpose is to facilitate
   communication between users. Professional disciplines also employ
-  PVIS for a variety of purposes, including training via simulators
-  and prototyping via computer aided design tools.
+  \glspl{pvis} for a variety of purposes, including training via
+  simulators and prototyping new products via computer aided design
+  tools.
       
 \end{description}
+
+\subsection{Case Study: Medical Simulation}
+
+Now that we have a firmer idea of what a \acrlong{pvis} consists of,
+let us explore a real world problem domain: plastic surgery. By
+understanding this complex domain, we will be able to answer the
+question that constantly follows any attempt to build a complex
+system, such as a \gls{pvis}: Why go through the effort?  Perhaps
+restated in concrete terms, what could warrant the thousands of
+man-hours or years of research required to build such a piece of
+software? Ultimately, the answer is found in the utility of the
+end-result. The ability of the final artifact, enhanced by the first
+four aspects, to produce practical value for its users is the reward.
+
+However, the purpose of a \gls{pvis} is more than just a set of goal
+posts to arrive at. For researchers and software engineers, a
+practical purpose guides their design decisions and serves as
+evaluation metrics for the final product: What is the real-world
+usefulness? How well does the system accomplish the task it was designed for?
+What are the fine grained aspects of the task? What features need to
+implemented (or perhaps more interestingly, not implemented)? Who are
+its users? All of these questions are answered by an external guide
+and are not addressed by pure software design principles.
+
+For the work described in subsequent chapters in this document, the
+domain of plastic surgery will act as this external
+guide. This document's goal is to explore systems and techniques which
+support the cognitive challenges faced by reconstructive plastic
+surgeons. Due to the complexity of this surgical specialty, the scope
+of this work is limited to the more tractable sub-problem of local flap
+techniques and craniofacial anatomical regions. A later section will
+discuss the technical details and specific tasks required for this
+domain, but for now let us look more closely at how the five aspects
+of a \gls{pvis} intersect with this domain.
+
+\paragraph{Geometry} Surgery in general, plastic surgery in
+particular, are areas in medicine which depend strongly on a
+practitioner's intuitive spatial reasoning processes. At a high level,
+the task of a plastic surgeon is to manipulate the geometry of the
+human body into a new configuration. The reasons for this style of
+intervention are numerous and range from cosmetic procedures,
+post-operation repairs, to fixing congenital
+deformities. A surgeon must understand the geometry of their patient
+in order to produce aesthetically pleasing outcomes. Since these
+operations are often highly visible, failures or mistakes can be
+extremely costly in an emotional and social sense for the patient. Any
+\gls{pvis} designed for this domain must take these concerns seriously
+and present a compelling visual representation.
+
+The work presented in this document achieves this goal by describing a
+tool for visually authoring plastic surgery operations in a three
+dimensional virtual environment. However, it is worth taking time to consider
+some potential alternatives. For instance, a two dimensional sketching
+interface could be considered, drawing on the rich history of surgical
+instructional diagrams that exist in the field. Certainly such
+approaches have been used for decades in surgical textbooks, but they
+fall short of giving the viewer a comprehensive perspective of the
+inherent three dimensional nature of human anatomy. Alternatively, one
+might consider using video of real operations, annotated with
+information describing what is happening. While this idea certainly
+leaves no question about the three dimensionality of the problem, it
+does so by sacrificing the clarity a rendered computer model can
+provide and the ability to alter the geometry easily.
+
+A note should also be made on display technology. Here the word
+``display'' should be treated loosely and should be taken to mean any
+physical channel which conveys information from the \gls{pvis} to the
+user. Commonly, this is restricted to visual interfaces, such as
+computer monitors or \glspl{hmd}. However, it could also refer to
+force feedback devices, where a user receives tactile responses from
+their actions in the system. Ultimately, the proper device choice for
+a surgical \gls{pvis} depends on its intended purpose. Many commercial
+tools for training surgeons on laparoscopic equipment use a tightly
+coupled visual and tactile feedback system. Here the goal is to
+replicate operating room conditions exactly, hopefully instilling into
+physicians the \gls{tacit} required\cite{TACITKNOWLEDGE}.
+
+\paragraph{Reactivity \& Dynamism} During their education, a surgeon
+builds internal intuitions about how the various tissues of the human
+body. Primarily, they are interested in how the tissues, such as skin,
+react to external forces: pulling and pushing. These biomaterials
+behave complex and often non-intuitive fashions, which must be
+internalized into a surgeon's mental model of an operation. When
+considering a virtual representation of an operation, maintaining
+these properties for a user that is expecting them from real-life
+experience can be important. Incorporating these behaviors into a
+\gls{pvis} typically falls under the aspects of reactivity and
+dynamism. This document will show how these properties can be
+generated by simulating elastic materials, but this is not the only
+approach that could be taken.
+
+To avoid the computational expense of physics simulation, one might
+consider traditional animation. Here, a trained animator might work
+closely with a surgical domain expert to develop three dimensional
+animations. These animations would move in the correct fashion,
+stretching and bulging where appropriate. However, they would behave
+in a fixed fashion, perhaps embodying a series of finite states. The
+primary benefits of this approach are flexibility and speed. The
+creative team behind the animations can do what they want,
+unrestricted by anything except their imagination and knowledge of
+real-world behaviors. Additionally, once created, the animations can
+be played back at high speed requiring, compared to simulation, few
+computational resources. Unfortunately, this requires sacrificing the
+ability to make dynamic changes and requires significant time
+commitment from the artists and surgeons.
+
+While traditional animation techniques can capture the reactive
+qualities of human tissue, physical simulation better captures the
+dynamic aspects, especially when reactivity and dynamism are mixed. An
+example to consider are the effects of blood loss on tissue. Undamaged
+human tissue is composed primarily of water, a material which is
+largely imcompressible. Accordingly, human tissue can also be thought
+of as effectively incompressible - until a surgeon cuts into it. As
+blood leaves through the open wound, the water content of surrounding
+tissue drops resulting in the tissue becoming more and more
+compressible. This a \textit{dynamic} property of the
+tissue. Depending on how quickly a surgeon works, the subsequent
+manipulations may be on tissue that is more or less compressible
+changing the way they \textit{react}. Physical simulation excels at
+capturing this complex interplay between reactive behavior dynamic
+properties, which can only be roughly approximated by prescribed animations.
+
+\paragraph{Interactivity} Surgeons require impressive hand-eye
+coordination; they carefully trained over many years on how to
+interact with human tissue, both manually and via surgical
+instruments. A substantial challenge, in developing a \gls{pvis}, is
+how to map these complex modes of interaction to a computer system
+while retaining usefulness. There are many approaches than can be
+taken to reconcile this challenge, depending on the ultimate goals of
+the application. If the goal is to provide the user with realistic
+physical sensations, haptic feedback interfaces can be used. Many
+existing surgical simulation tools in the industry and in academic
+circles have used this technique. [CITE some examples] Alternatively,
+it might be more important to replicate the exact environment a
+surgeon might encounter. Often this utility is desired in cases where
+the surgeon is learning unfamiliar equipment or needs training in
+exotic interfaces, such as laparoscopic systems. [CITE simbiotix]
+
+
+\paragraph{Utility} The final \gls{pvis} aspect to discuss in regards
+to the plastic surgery domain is that of utility. This topic has been
+touched upon in the previous sections on Geometry, Reactivity,
+Dynamism, and Interactivity, but here the goal to explore in more
+depth how a \gls{pvis} can be used to support the plastic surgery
+profession. Surgical skills targeted by computer-based training
+solutions have been classified \cite{GallaRCHFMSS:2005} in two major
+categories. \emph{\Glspl{psymotor}} refer to the dexterous use of
+the surgeon's hands to manipulate instruments in the course of an
+operation. In plastic surgery, psychomotor training involves
+mechanical aspects of surgical tasks, such as the ``feel''
+of tissue being cut or the nuances of manipulating a scalpel to enact
+a curved incision. For example, training for laparoscopic procedures
+requires a clinician to be familiar with the tactile response of
+pushing and pulling on organs and to practice coordination
+skills required for suturing and cauterization.  A number of
+computer-based solutions focus on psychomotor training
+\cite{MendoL:2003,DeKLS:2005,KimCDS:2007,LindbT:2007}.
+
+In contrast to psychomotor training, \emph{cognitive skills} and
+training are largely mental rather than dexterous exercises. For
+example, in the procedure shown in Figure \ref{fig:gridiron-teaser},
+the surgeon needs to contemplate how to best repair a large square
+skin defect (i.e. area of excised tissue) by making auxiliary
+incisions that create properly shaped ``puzzle pieces'' which can be
+sutured together without creating excessive stress. Chentanez et al.\!
+\shortcite{ChentARCHGSO:2009} described a cognitive training system
+for steerable needle insertion, where the mental challenge lies in
+planning a sequence of actions involving needle flexion and torsion,
+in order to achieve a desired insertion trajectory.
+
+Focusing on one type of skill training or another affects the design
+decisions of a proposed \gls{pvis}. For instance, building a
+\gls{pvis} for psychomotor training likely places a greater emphasis
+on the interactivity aspects of the system, potentially requiring
+haptic feedback mechanisms to provide tactile sensations. Likewise, a
+cognitive training aid might require more involved reactivity and
+dynamism, such as a more accurate representation of tissue
+behaviors. While it might be tempting to say that all aspects, both
+psychomotor and cognitive, should be supported equally, it is
+important to remember that a \gls{pvis} is not reality. These systems
+are fundamentally an approximation of the real world and are subject
+to compromises. The next section will explore some of these challenges
+in more detail. 
 
 \subsection{PVIS Challenges}
 
@@ -284,68 +430,69 @@ Designing a Practical Visual Interactive System comes with a wide
 array of challenges, which is not especially surprising when
 considering how many components go into their makeup. In this section,
 these challenges will be reviewed, hopefully to give better context
-for the design decisions I have made for the rest of my work in this
-document.
+for the design decisions that were made for the rest the work
+presented in this document.
 
 \subsubsection{No One Size Fits All?}
 
-When developing software, an oft times discussed design goal is
-re-useability. Whether this refers to reusing techniques or software
-modules varies, but in general the more reusable something can be
-made, the more useful it becomes. Designing a PVIS, however, imposes
-some interesting roadblocks for the principle of reusability. The
-first issue that often comes up is that the requirements for a PVIS,
-while they can appear similar on the surface (e.g. display a 3D
-environment, respond to user input, etc.), are often implemented
-with situtational specific optimizations due to the tight restrictions
-placed on such systems (e.g. near real-time performance, extremely
-complex environments, etc.). Developers faced with these issues can
-easily fall into the trap of \textit{blind optimization}, where they
-optimize the implementation, often quite expertly, for some aspect,
-but without considering the rest of the system, or how the system
-might be reused later\footnote{I think its important to distingiush this from
-\textit{premature optimization}, where the developer spends time
-optimizing an implementation before knowing if such effort is
-required. Blind optimization is justifiable, if perhaps unwise in a
-larger context. Premature optimization may end up being wasted effort
-at best, deterimental at worst.}.
+During the process of software design, the goal of re-useability is
+often discussed. Sometimes designers are referring to reusing
+techniques or the software modules, but the theory is more reusable
+artifacts are generally more useful. Designing a \gls{pvis}, however,
+imposes some interesting roadblocks for the principle of
+re-usability. The first issue that often comes up is that the
+requirements for a \gls{pvis}, while they can appear similar on the
+surface (e.g. display a 3D environment, respond to user input, etc.),
+are often implemented with specific optimizations due to the tight
+restrictions placed on such systems (e.g. near real-time performance,
+extremely complex environments, etc.). Developers faced with these
+issues can easily fall into the trap of \textit{blind
+  optimization}. This is a form of anti-pattern, where they optimize
+the implementation, often quite expertly, for some aspect but without
+considering the rest of the system, or later re-usability It is
+important to distinguish this from \textit{premature optimization},
+where the developer spends time optimizing an implementation before
+knowing if such effort is required. Blind optimization is performed
+under local justification. It is only with a broader context that it
+can be determined to be a wise course of action. Premature
+optimization may end up being wasted effort at best, detrimental at
+worst.
 
-This is not to say that designing general purpose PVIS platforms is
-impossible. Game developers, over a long developmental history, have
-created many excellent general platforms for game development,
-referred to as game engines. But increasingly, these platforms, and
-the developers who design them, are becoming a field in their own
-right. While in the past, game developers may have done everything
-from writing low level graphics code to higher level game logic,
-modern games are often written by developers who know little about the
-low level optimizations required to reach the fidelty and performance
-expected of modern games. Instead, these skills and the software that
-results from their practice is found in game engines - highly tuned,
-carefully optimized systems which are not a game per se, but act as a
-solid foundation for games written on top of them. They provide
-\textit{services}: rendering, resource management, network support,
-user interface toolkits, and much more. In essence, this divide is not
-dissimilar to that of applications and operating systems. 
+Designing general purpose \gls{pvis} platforms is not impossible. Game
+developers, over a long developmental history, have created many
+excellent general platforms for game development, referred to as game
+engines. But increasingly, these platforms, and the developers who
+design them, are becoming a field in their own right.  In the past, a
+game developer might have done everything from writing low level
+graphics code to higher level game logic. In contrast, modern games
+are often written by developers who know little about the low level
+optimizations required to reach the fidelity and performance expected
+by current audiences. Instead, these skills are expressed as game
+engines - highly tuned, carefully optimized systems which are not a
+game per se, but act as a solid foundation for games written on top of
+them. They provide \textit{services}: rendering, resource management,
+network support, user interface toolkits, and much more. In essence,
+this divide is not dissimilar to that of applications and operating
+systems.
 
-The work I have done in this document generally follows this
-philosophy. As will be described in later sections, I have attempted
-to stick to two general principles when designing the systems
-presented here.
+The work completed in this document generally follows this
+philosophy. As will be described in later sections, the systems
+presented in this work adhere to two general principles.
 
 \begin{enumerate}
-\item \textbf{Avoid Uncalled for Optimization} In short, when
-  designing my implementations, it was important to avoid optimizing
-  too soon. In many cases, there were open questions (and still are!)
-  that premature optimization could have prevented us from
-  understanding. Only when it was clear that optimization was needed,
-  were further steps taken, and taken in complete understanding of
-  their consequences on the rest of the system.
+\item \textbf{Avoid Uncalled for Optimization} During implementation,
+  it was important to avoid optimizing too soon. In many cases, there
+  were open questions (many still remain!) that premature optimization
+  could have prevented a better understanding. Only when it was clear
+  that optimization was needed, were further steps taken, and taken in
+  complete understanding of their consequences on the rest of the
+  system.
 
 \item \textbf{Enforce Clean Separation} As will be discussed in more
-  detail later, I have attempted to separate the domain specific
-  motivation, plastic surgery, from the underlying technologies that
-  enabled its simulation. This allowed me to design a coupled, but
-  seperable, system, where the components needed to build a plastic
+  detail later, the domain specific motivation, plastic surgery, were
+  separated as much as possible from the underlying enabling
+  technologies. This allowed a coupled, but functionally isolated,
+  system design, where the components needed to build a plastic
   surgery simulation were isolated from the components needed to build
   a high performance finite element simulator.
   
@@ -354,7 +501,7 @@ presented here.
 
 \subsubsection{Realism and Believability}
 
-For the visual and virtual world aspect of a PVIS, one primary
+For the visual and virtual world aspect of a \gls{pvis}, one primary
 question that arises is one of  believability or realism. These
 concepts are often conflated, though they really should be considered
 separately. I view realism as a more direct measure of how much a user
@@ -383,29 +530,24 @@ stunts. Here the result must be have realism (it looks like the real
 person), but also be believable (the impossible stunt looks like it
 could have been pulled off).
 
-So what does this mean for PVIS designs in general? And for medical
-simulation specifically? The primary issue with a PVIS is that of user
+So what does this mean for \gls{pvis} designs in general? And for medical
+simulation specifically? The primary issue with a \gls{pvis} is that of user
 input. While a movie can be scripted and refined until realism and
 believability is exactly where the actors and artists want it to be, a
-PVIS must produce similar levels of fidelity when faced with arbitrary
+\gls{pvis} must produce similar levels of fidelity when faced with arbitrary
 user actions. Dealing with this challenge often requires domain
 specific knowledge in order to limit the potential space of user
 interactions. For example, in a surgery simulation, the user can't do
 absolutely anything to a section of simulated tissue. They are forced,
 by the context of the situation, to interact with it using the
 simulated tools provided: scalpels, sutures, etc... This allows a
-surgery PVIS to be engineered to properly handle all the potential
+surgery \gls{pvis} to be engineered to properly handle all the potential
 outcomes of this restricted interface, to better produce realistic and
 believable results.
 
-%\subsection{Application Driven Design}
-
-
-
-
 \subsubsection{Design Conflicts}
 
-A major problem facing the construction of any PVIS is that of design
+A major problem facing the construction of any \gls{pvis} is that of design
 goal conflicts. By this I am referring to the all too common situation
 where supporting one feature or aspect of a system, such as
 performance, comes into direct conflict with implementing another
@@ -424,7 +566,7 @@ are several conflicts we need to be especially aware of.
 
 \paragraph{Reactivity Vs. Accuracy}
 I touched on general reactivity before when talking about what defines
-a PVIS. For simulation, we can use a more precise definition where the
+a \gls{pvis}. For simulation, we can use a more precise definition where the
 reactivity of a system refers to the time between a user applies some
 change to a simulated system (a force impulse, a constraint change,
 etc...) and when the user sees the result of the action. This cause
@@ -502,97 +644,64 @@ are ready for optimization and which are not.
 At this point, a concerned reader may be asking why one should go
 through all the trouble of developing these types of systems. In the
 previous sections, I've described a complex series of requirements for
-PVIS construction, each challenging in isolation, let alone
+\gls{pvis} construction, each challenging in isolation, let alone
 combined. On top of these technical features, I've also laid out
 various higher level issues, such as problems with generality, user
 acceptance, and correctness. Despite all of these problems, I maintain
-that developing PVIS style platforms is not only doable, but
+that developing \gls{pvis} style platforms is not only doable, but
 ultimately desirable. In order to understand my position, let me
-describe the three avenunes by which a PVIS creates value:
+describe the three avenunes by which a \gls{pvis} creates value:
 As a Catalyst, By Filling a Need, and Intrinsically.  
 
 \subsubsection{Catalyst for Advances}
 
-As I've covered before, a reasoning about a PVIS is a complex task,
+As I've covered before, a reasoning about a \gls{pvis} is a complex task,
 implementing one is more so. In going about this process however, we
-have the potential to learn a lot. Anytime we have to adapt a PVIS to
+have the potential to learn a lot. Anytime we have to adapt a \gls{pvis} to
 a new domain or integrate new functionality, we will ultimately
-generate questions and hopefully new answers. In this way, PVIS
+generate questions and hopefully new answers. In this way, \gls{pvis}
 implementations are a generator for new research. Whether it is
 answering questions about rendering, human-computer interaction,
 systems, software design, optimization, or in the case of this thesis,
-physical simulation, a PVIS acts as a fertile soil within which we, as
+physical simulation, a \gls{pvis} acts as a fertile soil within which we, as
 researchers, are able to experiment in many areas. But more than
-simply providing a platform to test isolated ideas, a PVIS is by its
+simply providing a platform to test isolated ideas, a \gls{pvis} is by its
 nature integrated. Any change affects and is affected by everything
 else, forcing researchers to take in and understand the big picture
 around their work and where it fits into the whole.
 
 \subsubsection{Utility Gap}
 
-The second reason that building a PVIS is often worthwhile is to fill
-a need. As I stated, a PVIS is, at its core, software with a
+The second reason that building a \gls{pvis} is often worthwhile is to fill
+a need. As I stated, a \gls{pvis} is, at its core, software with a
 purpose. In some cases, such as game development, many implementations
-of a PVIS have already been created, making the bar much higher as to
+of a \gls{pvis} have already been created, making the bar much higher as to
 the need for another one. But in other areas, such as medical
 simulation, the gaps in functionality coverage are more severe. To use
-the PVIS described by this document as an example, there have been
+the \gls{pvis} described by this document as an example, there have been
 many projects developing systems for laparoscopic organ surgery, for
 instance, but few systems for performing simulated plastic surgery,
-let alone a fully featured PVIS with a rich set of
-capabilities. Filling this gap with the utility provided by a PVIS is
+let alone a fully featured \gls{pvis} with a rich set of
+capabilities. Filling this gap with the utility provided by a \gls{pvis} is
 then extremely valuable, as without it practitioners are left behind in
 a world where their colleagues are more and more enjoying the benefits
 of modern computing technology.
 
 \subsubsection{Intrinsic Value}
 
-At a basic level, a PVIS itself is valuable. Even if we ignore the
-value of a PVIS in fulfilling its specified purpose, or the additional
+At a basic level, a \gls{pvis} itself is valuable. Even if we ignore the
+value of a \gls{pvis} in fulfilling its specified purpose, or the additional
 research that can be spawned as a result of its construction, building
-the PVIS is beneficial to its developers and the greater
-community. For the former, implementing a PVIS requires time,
+the \gls{pvis} is beneficial to its developers and the greater
+community. For the former, implementing a \gls{pvis} requires time,
 dedication, and skill - but no one enters and leaves such a project
-unchanged. Simply being a developer on a PVIS helps a developer become
+unchanged. Simply being a developer on a \gls{pvis} helps a developer become
 a better software engineer, simply through the long hours of practice
-they will spend on it. Beyond individual developers, building a PVIS
+they will spend on it. Beyond individual developers, building a \gls{pvis}
 is important to the community at large for the simple reason that it
 demonstrates that such a project can be done. Like all large pieces of
 software, sometimes the most important idea they can convey is that such a project is
 even feasible at all.
-
-% Let us break this down a little,
-% starting with the first and last words, Practical Systems. The first
-% important bit to notice is that I am using stating this in
-% plural. Often, when discussing a piece of academic work we describe it
-% in terms of its concrete contribution, and how this or that piece of
-% code acts as a proof-of-concept. While this is certainly valuable as a
-% method to convey new knowledge out into the world, I argue its less
-% useful overall than a more complex arrangement of parts that solve
-% real-world, practical problems. And I would further argue that a
-% single domain specific system is often insufficient, and actual
-% solutions require multiple interacting systems from a variety of
-% domains to be truly successful.
-
-% So what then are Practical \textit{Interactive} Systems? On a surface
-% level reading, this could refer to anything that allows user
-% interaction. However I would like to define a narrower scope, by
-% restricting the discussion to interactive graphical systems. An
-% excellent real-world example would be video games. A modern video game
-% generally consists of multiple interlocking systems from a variety of
-% disciplines: rendering, artificial intelligence, human computer
-% interaction, and networking. All of these systems however are working
-% towards one general goal: The display of a real-time interactive
-% virtual experience to one or multiple users simultaneously. Now of
-% course, all of these requirements come with caveats. For example,
-% real-time interactivity is generally understood to be not real-time,
-% but at a discreet frame-rate above some threshold. The important point
-% here is that for these systems to be truly practical to people, they
-% must merge the constraints imposed by interactivity and the complexity
-% of interacting parts to provide requisite functionality. Tying these
-% two pieces together, interactivity and complex systems, ultimately
-% returns us back to the first facet: good design.
-
 
 \section{Software Design}
 
@@ -625,6 +734,852 @@ unknowable when development begins on a project. Being able to
 continously reuse existing proven code as much as possible between projects
 allows researchers to develop quicker, hopefully with less bugs.
 
+
+
+\chapter{Engineering Deconstruction}
+
+Given the design challenge of creating a \acrlong{pvis} for plastic
+surgery training, the next question is by what methods can best
+accomplish this task. Commerically, there exist examples of surgical
+simulation products based on both procedural animations and physical
+simulations. As discussed in the previous chapter, a detailed
+procedural animation can meet many of the goals for a surgical
+training \gls{pvis}. The choice of these methods can by provide realistic geometry,
+respond to user inputs by advancing down pre-scripted event chains,
+and serve as a functional replacement for traditional illustrated
+procedure guides. However, they fall short when assisting in cognitive training
+tasks.
+
+In these scenarios, the surgeon undergoing training is expected to be
+developing a mental intuition for how operations work at a fundamental
+level and be capable of adapting this knowledge to new
+situations. These requirements go beyond a simple recall of the
+``correct'' approach and instead requires surgeons to understand the
+behaviors of tissue at a intuitive level. Traditionally, this level of
+understanding is gained through years of experience working with live
+patients, or animal models. Through this process, surgeons experiment
+with designs (with experienced mentors guiding them) and observe the
+results in order to better understand what works and what does not. It
+is the support of this intellecual freedom, the ability to deviate
+from diagrams in textbooks, that is important for a plastic surgery
+\gls{pvis} to capture. To address these concerns, we turn away from
+procedural animations to physical simulation. Physical simulation can
+help address this problem by providing correct, real-time responses to
+a user's actions, regardless of what actions they take.
+
+The remaining chapters in this document will discuss technical
+contributions that will help in building a plastic surgery training
+\gls{pvis} with physical simulation, but the goal of this chapter is
+to deconstruct the basic engineering challenges found in this
+space. This will help frame the work presented in subsequent chapters,
+which can otherwise feel somewhat disconnected from the topics of
+plastic surgery or \gls{pvis} design in general.
+
+% PVIS, Virtual Surgery, Simulation
+
+% How do we get to Simulation from PVIS/Virtual Surgery? Why not just do
+% animations? Well, they are not a PVIS according to the definition
+% defined earlier - No real connection between
+% reactivity/dynamism/interactivity.
+
+% Instead, we are going to consider building our virtual surgery pvis
+% around a core of functionality consisting of elastic body
+% simulation. Why? Allows us to represent the virtual tissue with
+% realistic geometry. Maintains a state representing the behavior of
+% real tissue. Can change over time imitating real time-varying
+% responces of real tissue. Can appropriately react to user input
+% through conceptual physical inputs. Can be built with accurate models
+% to help support real world surgical tasks.
+
+% Lets break this down then
+
+\section{The Goal}
+
+To start, let us bring the topic of discussion down from the higher
+level thoery discussed in the the previous chapter and provide a
+concrete goal for what we want to provide. At the core, our proposed
+surgical \gls{pvis} can be described as a system which provides three
+dimensional models of tissue a reactive mechnical response to previously
+unscripted user input. Let us break this down further and look at each
+of these parts in more detail. 
+
+First, what does it mean to have a three dimensional tissue model with
+mechanical responces?  Starting from the real world, it can be said
+that tissues are fundamentally collections of cells, or more
+basically, atoms. Considering the collection as a whole, these small
+elements give rise to the tissue's shape and form. We will return to
+this idea of small elements later in the chapter, but for now let us
+reason about these materials as if they were continuous entities. We
+do this for the convenience of reasoning about them in a mathematical
+sense, for ultimately all of the complex physical behavoirs we expect
+from soft, squishy materials can be described by equations for stress
+and strain.
+
+To begin, we can consider an abstraction: a model of
+tissue which consists of a closed boundary in three dimensional
+coordinate system and the region which it encloses. We will be
+refering to this region of space as the object's domain, represented
+by the symbol $\Omega$. Later, we will talk about how to represent
+this domain discretely on a computer, but for now simply treat it as a
+prescribed region.
+
+The next challange is to describe what we mean by mechanical
+response. Mechanical response of soft bodies, such as human tissue,
+can be described as a series of relationships between shape, forces,
+and energy. We will be using these relationships to convert between
+one aspect and another - in other words, produce new shapes from
+considering the forces applied to an object. To explain this idea, let
+us first consider a hypothetical elastic object, such as a block of
+rubber. If one was to squeeze the block from two opposite sides, it
+would deform, or change shape. And if the block is released, the shape
+returns to the original configuration. What is happening in this
+situtation is the physical manifestation of the relationship between
+the applied forces, the block's internal energy, and its shape. In
+particular, we are primarily interested in a class of materials known
+as \gls{hyperelastic} materials. These materials are idealized as they
+do not consider the object's prior deformation history when we compute
+their current state and depend only on the current shape of the
+object. The alternative would be some degree of
+\gls{plasticity}. Plasticity effects are incredibly common in real
+life, from the persistent wrinkles in uncrumpled paper to the fact
+that metal holds its shape after being bent. Despite this, we can
+avoid introducing the complexity of these effects by noting that human
+tissue, which exhibits plastic effects over long periods of time, is
+effectively hyperelastic during the time frame of a typical surgical
+operation. However, none of this really describes how these materials
+work at a mathematical level. To do so, we return to our high school
+physics lectures.
+
+\section{Equations for Deformation}
+
+If we recall Newton's Third Law of Motion, external forces applied to
+objects are met with an equal and opposite force. But if we look at
+the object wholistically, we would see that these opposing forces
+don't just exist on the surface, but are distributed interally
+throughout the object's material. These internal forces are referred
+to as mechanical stress. Stress is defined to be force applied over an
+cross-sectional area, or volume for three dimensional objects. If we
+were to look at a single point of an object, we could define the
+internal stress of that point by a second dimensional tensor, which
+describes what force vectors are felt by that point in three
+orthoginal directions. Ultimately, this internal stress field causes
+the object to deform, or change shape, resulting in strain - the
+mechanical term for a related tensor value which is defined as the
+ratio of changed length (or volume) compared to the orginal
+length. The strain tensor, in combination with the specific material
+being deformed, represents a quantity of potential energy. This energy
+represents the amount of work required to deform the object.  Given
+these basic mechanical deformation concepts, we can now develop a
+theoretical framework for simulating deformable objects.
+
+The first part of that process is describing our representation of
+state. To do so, we return to the object's shape. The deformation of
+an object is the change in shape between one configuration and
+another. In order to keep track of the deformation, we can record it
+relative to a object's reference configuration. This is an arbitrarily
+choosen shape in the coordinate system of the object from which all
+other deformations are measured. Mathematically, we can define this as
+a mapping between the domain of the object and $\mathbf{R}^3$:
+$$\phi: \Omega \rightarrow \mathbf{R}^3$$. Under this regime, we
+consider the domain of $phi$ to be points in $\Omega$, often refered
+to as material locations as they can conceptually be considered
+infentesimal blobs of deformable material. We simultously locate and
+identify them by a spatial vector: $\vec{X} = (X, Y, Z)$. The points
+in $R^3$ which make up the image of $\phi$ are the cooresponding
+deformed locations $x$. It is worth noting that the reverse mapping
+could have been considered, i.e the mapping that projects from a shape
+back to the reference configuration. This type of relationship is
+not unusual in computer graphics, for instance via mesh
+parameterization for texture mapping. Unfortunately, this relationship
+is a little harder to deal with, espically if we wish to handle
+situations where the mapping is not one-to-one, such as when the
+deformation causes the object to overlap with itself. For the
+techniques presented in this document, we will be using a reference
+configuration that is non-self penetrating and a forward deformation
+map to avoid these problems.
+
+Now that we can define what it means for an object to be deformed, we
+can return to the problem of the stress, strain, and energy
+relationships. To do so, we'll be using the concept known as a
+deformation map. As mentioned previously, the strain an object has
+under deformation is spatially varying tensor field which describes
+the ratio of stretch or compression. In order to access this information,
+we can take the derivative of the deformation map $\phi$:
+
+\begin{equation}
+  \label{equ:deformationgradient}
+  \mathbf{F}(\vec{X}) = \frac{\partial \phi(
+      \vec{X} )}{ \vec{X} }
+\end{equation}
+
+We call this function $F$ the deformation gradient and it is almost,
+but not quite equivient to the strain. The reason is that the object's
+strain should be invarient to rigid body transformations,
+i.e. translations and rotations. However, it is still reasonable to
+use this value as a basis for computing the cooresponding strain
+energy, the potential energy captured by the deformation. To do so, we
+use another relationship called a strain measure. The strain measure
+attempts to provide a quantiative measure of the amount of
+deformation. To put it another way, the strain measure acts as a
+filter - it enhances aspects of the deformation gradient that the
+object should respond more strongly to (e.g. sheer) while reducing the
+effect of those it should be invarient to (e.g. rotation). There exist
+several popular strain measures which vary in computational complexity
+and in accuracy. A common and easy strain measure is the the small
+strain measure $\epsilon$, which has the following form:
+
+\begin{equation}
+  \label{equ:smallstrain}
+  \epsilon = \frac 1 2 (\mathbf{F} + \mathbf{F}^T) - \mathbf{I}
+\end{equation}
+
+While it has nice properties, by acting as a linear
+relationship between an object's deformation and its strain energy, the small
+strain maeasure suffers from not being invarient to rotations,
+making it typically unsuitable for large deformations. In constrast,
+the Green strain $\mathbf{E}$ is more robust under such conditions,
+but gives up the linearity property as a result:
+
+\begin{equation}
+  \label{equ:greenstrain}
+  \mathbf{E} = \frac 1 2 (\mathbf{F}^T\mathbf{F}-\mathbf{I})
+\end{equation}
+  
+Once we have choosen the strain measure for our material, we can use
+it to derive the material's energy density function
+$\Psi(\mathbf{F})$. This is a measure of the potential energy due to
+deformation per unit volume of the material. If we integrate this
+function over the entire domain $\Omega$ of the object, we can compute
+the total energy contained in the object as a result of the
+deformation. The energy density function is critical in describing a
+material, as all other equations describing its state can be derived
+from it. Similar to the strain measure, there are several popular
+energy density functions which can describe generic deformable
+materials. Linear elasticity, Equation \ref{equ:linearelasticity},
+which derives from the small strain tensor, is easy and uncomplicated
+to compute due to its linear relationship to the deformation
+gradient. However, since it is based on the small strain tensor, it is
+not rotationally invarient and can exhibit phyiscally inaccurate
+behaviors under large deformations.
+
+\begin{equation}
+  \label{equ:linearelasticity}
+  \Psi(\mathbf{F}) = \mu \epsilon : \epsilon \frac \lambda 2 \text{tr}^2(\epsilon)
+\end{equation}
+
+However, just as with the small strain tensor and the Green strain
+tensor, there exist more accurate, if non-linear, energy density
+functions. If we simply replace the strain tensor used in the Linear
+elasticity model with the Green strain tensor, we get what is known as
+the St. Venant-Kirchhoff elasticity function (Equation
+\ref{equ:stvenantkirchhoff}).
+\begin{equation}
+  \label{equ:stvenantkirchhoff}
+  \Psi(\mathbf{F}) = \mu \mathbf{E} : \mathbf{E} \frac \lambda 2
+  \text{tr}^2(\mathbf E)
+\end{equation}
+Unfortunately, this description of elastic energy is highly nonlinear
+and has the unfortunate side effect of reducing resistence to
+compression once the material has been compressed past a certain
+threshhold. In the film production industry, another nonlinear energy
+function is often used instead, called Corotated elasticity. This
+model is based off a new strain measure created from a polar
+decomposition of the deformation gradient,
+\begin{gather*}
+\mathbf F = \mathbf R\mathbf S\\
+\epsilon_c = \mathbf S - \mathbf I
+\end{gather*}
+
+resulting in a energy density function which maintains the rotational
+invarience properties ideal for large deformations, but remains
+similar enough to a linear relationship to be more predictable under deformation. 
+\begin{equation}
+  \label{equ:corotatedelasticity}
+   \Psi(\mathbf{F}) = \mu \epsilon_c : \epsilon_c \frac \lambda 2
+   \text{tr}^2(\epsilon_c) = \mu \lVert S - I \rVert^2_F \frac \lambda 2
+   \text{tr}^2(S-I)
+\end{equation}
+
+From the energy density expression, it becomes a relatively simple
+matter to derive the energy for the entire deformed domain $\Omega$ by simply
+integrating the density:
+
+\begin{equation}
+  \label{equ:systemenergy}
+  E(\phi) = \int_\Omega \Psi( \mathbf F ) \,d\vec{X}
+\end{equation}
+
+Once we have a description of the material's energy, we can derive a
+secondary expression for the stress. Remember, similar to strain, the
+stress tensor is a evaluation of the force a material experiences at
+an infintesimal volumetric region. In this document, we will be mostly
+concerned with one type of stress tensor, the 1st Piola-Kirchhoff
+stress tensor $\mathbf{P}$, which is a second order, $3 \times 3$
+tensor. Fortunately, for the class of materials we are interested in
+here, hyperelastic materials, the defination of the stress tensor is
+straightforward:
+\begin{equation}
+  \label{equ:piolakirchhoffstresstensor}
+  \mathbf{P}(\mathbf F) = \frac{ \partial \Psi(\mathbf F)}{\partial
+    \mathbf F}
+\end{equation}
+
+Finally, we can compute the force density (force per unit volume) at a
+material point, by taking the divergence of $\mathbf P$:
+
+\begin{equation}
+  \label{equ:forcedensity}
+  \vec{\mathit f}(\vec X) =
+  \text{\textbf{div}}_{\vec X}\mathbf P (\vec X)
+\end{equation}
+
+\section{Solving for Mechanical Response}
+
+With these equations in hand, we can now reason about how to produce
+realistic mechanical responses from materials - the question we opened
+this chapter with. At this point, it is time to also return to the
+initial description of our material as a composition of small
+elements. Of course, in our case, the small elements are not the same
+as cells in human tissue, but they do represent finite quanta of
+material, thus giving rise to the name of the approach we will be
+using throughout this document: \gls{fem}. We now move away from the
+continous world we were previously occuping into a discrete one more
+suitable for computation on computers.
+
+In our new discrete world, we must first translate our former
+continous domain $\Omega$ into a data structure representable on a
+computer. Here we have a number of choices to pick from. \gls{fem}
+literature has described many approaches for descrization over the
+years, ranging from volumetric meshes to particle based
+approaches. These designs can be evaluated over several categories:
+regularity, conformity, and ease of use. Regularity refers to the
+extent that the technique uses repeating data structures or provides
+implicit internal relationships that can be predicted, which is often
+extremely benificial for performance. Conformity refers to how well
+the data structure represents the object's boundary shape. Finally,
+ease of use is a catch all term that includes any quality which makes
+the data structure easy or troublesome to include in higher level
+pipelines. In this document, the approach we will be using is a mesh
+discretization. In particular, we will be using a design referred to
+as an embedding lattice. This data structure is extremely regular and
+generally easy to construct, though it can suffer from a lack of
+conformity. 
+
+With this representation, our material will be sampled at cartesian
+nodes of a regular hexadedral lattice and our elements of computation
+will be its cells. We refer to these nodes as degrees of freedom, as
+they represent the discrete points where deformation can occur. To
+deal with the issue of conformity, we can utilize a technique known as
+lattice embedding - where the discrete vertices of our object's
+surface, typically represented by another mesh, are embedded in cells
+of the lattice via a weighted interpolation of its nodes. Later in
+this document, additional techniques will be presented to further
+increase the accuracy of the lattice's surface conformity. Moreover,
+since the terms presented in regards to embedding can be confusing, we
+will stick to the following terminology:
+
+\begin{description}
+\item[lattice] - The simulation lattice is the discrete representation
+  of our simulation domain and is composed of cells of material known
+  as elements. Through the simulation lattice, we compute strains,
+  stresses, and ultimately forces.
+\item[node] - A node is a topological point in our simulation lattice,
+  also called a degree of freedom, or DOF. It records values of
+  deformation and the resulting forces.
+\item[cell] - A cell is the basic computational unit of our simulation
+  lattice. It is represented as a regular hexadedral volume and
+  connects the eight nodes at its corners.
+\item[mesh] - Our material surface is represented by a mesh. This mesh
+  is conforming, i.e it attempts to match the shape of the continuous
+  domain as closely as possible. The deformed material surface is the
+  desired visual result of our deformation simulation.
+\item[vertex] - A vertex is a topological point in our material
+  mesh. While it is deformed by the simulation lattice, its position
+  in space is wholely determined by its embedding relationship,
+  typically bilinear, to its parent cell.
+\end{description}
+
+Using this simulation lattice as a discrete approximation of our
+continuous domain, we can now translate the concepts from the previous
+section. Instead of material points, we have nodes. Each node is
+identified by an identifier. This identifier can be as simple as an
+integer, e.g. Node 52, but since we are using a regular lattice, we
+will continue with the previous spatial labeling, although in this case we
+will now use integer coordinates. Our former concept of a reference
+configuration will remain, by assigning each node a reference position
+in space. Defining our deformation map $\phi$ then becomes as
+simple as:
+\begin{equation}
+  \label{equ:discretedeformationmap}
+  \phi(\vec{X}:\mathbf x) = \sum_i x_i \mathcal N_i(\vec{X})
+\end{equation}
+
+Where we define $\mathbf x = {x_1, x_2, x_3, \ldots, x_n}$ to be our
+deformation state, which includes the displacement of every node in
+our lattice from its reference location. In this expression
+$\mathcal N_i$ is the \textit{shape function} for each node in the
+cell. This shape function corresponds to the interpolation method we
+will employ, example trilinear or tricubic interpolation. Using this
+new description of $\phi$, we can derive a continuous defintion of the
+deformation map for any point $\vec{X}$ inside the cell just as
+before:
+
+\begin{equation}
+  \label{equ:discretedeformationgradient}
+  \mathbf F(\vec{X}:\mathbf x) = \frac{ \partial \phi(\vec{X}:\mathbf x)
+  }{\partial \vec{X}} + \mathbf I
+\end{equation}
+
+In this expression for the deformation gradient, we include an
+identity term which compensates for the fact that our deformation
+state $\mathbf x$ is a record of relative displacements and not
+absolute deformed positions.  From this expression, we can sum the
+energy contributions from each discrete cell $e$. This results in an
+energy expression for the discrete state of the object:
+
+\begin{equation}
+  \label{equ:discreteenergy}
+  E(\mathbf x) = \sum_e E^e(\mathbf x) = \sum_e \int_{\Omega_{e}}\Psi^e( \mathbf F(\vec{X}:\mathbf x) ) \,d \vec{X}
+\end{equation}
+
+From these expressions, we can derive an expression for forces at each
+node by simply taking the derivative of the systems energy at each
+cell and summing its contribution onto the node:
+
+\begin{equation}
+  \label{equ:discreteforces}
+  \vec{f}_i(\mathbf x) = \sum_{\mathcal N_i} \vec{f}_i^e(\mathbf x)
+  \text{, where } \vec{f}_i^e = \frac{\partial E^e(\mathbf x)}{\partial \mathbf x}
+\end{equation}
+
+Using this relationship between nodal displacements and nodal forces,
+we can finally describe the process for computing deformations.
+
+For the purposes of this discussion, we'll be limiting our focus to
+quasistatic deformation simulation sequences. Quastistatic deformations are the
+result of the system being solved for internal equilibrium while we
+change external positioning constraints. Generally, this idea boils
+down to solving for:
+
+$$
+\mathbf f(\mathbf x) = 0
+$$
+Where
+$\mathbf f = {\vec{f}_1, \vec{f}_2, \vec{f}_3, \ldots, \vec{f}_n}$ is
+our force state, similar to $\mathbf x$ as our deformation state.
+Since the relationship between forces and deformation is generally
+non-linear, unless we are using a linear elasticity model for small
+deformation situations, we can use a standard Newton-Rhapson iteration
+approach to solve for $\mathbf x$ such that $\mathbf f(\mathbf x) =
+0$. At each $k$ steps of this iteration, we need to compute a linear
+approximation of our force-deformation relationship around our current
+solution:
+
+\begin{equation}
+  \mathbf f(\mathbf x_k + d\mathbf x) \approx \mathbf f(\mathbf x_k) +
+  \frac{\partial \mathbf{f}}{\partial \mathbf x}\biggm|_k\,d\mathbf x
+\end{equation}
+
+In this expression, we compute the force derivative around the state
+at iteration $k$. Since we are interested in having our update
+$d\mathbf x$ make our forces zero, we can derive the Newton-Rhapson
+update expression:
+
+\begin{equation}
+  \label{equ:newtonstep}
+  \underbrace{- \left(\frac{\partial \mathbf{f}}{\partial \mathbf
+      x}\biggm|_k\right)}_{\mathbf K(\mathbf x_k)}
+\,\underbrace{\vphantom{- \left(\frac{\partial \mathbf{f}}{\partial \mathbf
+      x}\biggm|_k\right)}d\mathbf x}_{d\mathbf x_k}
+  = \underbrace{\vphantom{- \left(\frac{\partial \mathbf{f}}{\partial \mathbf
+      x}\biggm|_k\right)}\mathbf f(\mathbf x_k)}_{\mathbf f_k}
+\end{equation}
+
+We refer to the matrix $\mathbf K$ as the \textit{stiffness
+  matrix}. In order to arrive at a solved equibrium configuration, for
+each iteration $k$ our task becomes the following steps:
+
+\begin{enumerate}
+  \item Update the stiffness matrix $\mathbf K$ for the current
+    configuration $\mathbf x_k$.
+  \item Compute forces $\mathbf f_k$ corresponding to $\mathbf x_k$
+    for our right hand side of the update expression. \textit{Check to
+      see if we can terminate.}
+  \item Solve $\mathbf K$ for a displacement update $d\mathbf x$.
+  \item Update our current state $\mathbf x_{k+1} = \mathbf x_k +
+    d\mathbf x$
+  \end{enumerate}
+
+  At the end of this chapeter, we'll look at the emergent challenges
+  from this design, but for now it is important to note that the
+  solution to the stiffness matrix inverse is the major computational
+  expense during this process. To see why, we should take a brief look
+  at its construction. At a high level, the stiffness matrix is a
+  relationship between forces and displacements, i.e. how much force
+  is generated due to an infestismal displacement of any node of our
+  lattice. When reasoning about this idea, remember that the
+  simulation lattice is composed of hexaderal elements - every
+  interior node is connected to 27 neighboring nodes. These are the
+  neighbors which form the one-ring of adjecent cells. Moreover, in
+  three dimensions each relationship to a neighbor takes the form of a
+  $3 \times 3$ matrix, relating the force vector of the node to the
+  displacement vector of each neighbor. For a hypothetical problem of
+  a $128^3$ domain, this means our total non-zero element count in our
+  matrix is approximately 500 million entries, or just under two
+  gigabtyes of storage space if using a floating point
+  representation\footnote{This is not including any additional storage
+    cost overheads for representing the sparse matrix itself. This
+    number is simply the space required to store only the non-zero
+    coeffiecents alone.}. Practically, this means that the solution to
+  this matrix is non-trivial, at least if we want to accomplish it
+  quickly.
+
+  \section{User Interaction}
+
+  Until this point, the discussion of materials and mechanical
+  responses have been avoiding the last component of the initial
+  problem statement: unscripted user interactions. This is a complex
+  topic and it is best to approach it after having a basic
+  understanding of how simulated materials are solved in general. In
+  the real world, we interact with objects intuititaivly - we push and
+  pull things, glue them in place, or join them via connectors. For
+  simulated objects, we can perform many of the same conceptual tasks
+  by mapping their high level descriptions into the fundemental forces
+  behind them. By doing so, we introduce a new wrinkle into
+  our previous equations: external forces and constraints.
+
+  Let us briefly look at a high level overview of the various types of
+  user interactions and constraints we will want for our problem. For
+  plastic surgery, we commonly are performing a limited set of
+  conceptual actions: Pulling on tissue, clamping it down, sutureing
+  it together, or cutting it. We'll talk about the last action later,
+  as it's a bit more complicated. The first three actions are fairly
+  straightforward however.
+
+  \textbf{Position constraints} Arguably the easiest constraint type,
+  positional constraints can be thought of as holding a part of an
+  object fixed in space with infinetely strong glue. Mathematically
+  speaking, these constraints are refered to as \textit{dirichlet}, or
+  boundary conditions which must be met at all times during the
+  simulation. Numerically, dirichlet conditions are applied by
+  disallowing any displacement to occur on such constrained nodes. For
+  virtual surgery, these constraints could serve to pin the edges of
+  tissue down, or act as a transition between the simulated and
+  non-simulated regions, preventing separation. 
+
+  \textbf{Force constraints} The second form of constraint are force
+  constraints. These constraints are direct applications of force
+  targeted at particular points of the simulated object. In terms of
+  the equations we've looked at before, force constraints modify both
+  the stiffness matrix $K$ and the righthand side $\mathbf f$ in
+  Equation \ref{equ:newtonstep}. In this document, we will be treating
+  these types of constraints as zero-rest length springs, which obey
+  the simple one dimensional form of Hooke's law:
+  \begin{equation}
+    \label{equ:hookeslaw}
+    F = -k\lVert x_a - x_b\rVert_2
+  \end{equation}
+  In this linear relationship, the restorative forces (forces acting
+  in a direction to return the spring to its resting length) $F$ are proportinal to the
+  amount the spring has been stretched, represented by the distance
+  between its two end points $x_a$ and $x_b$, all of which is
+  modulated by a spring constant $k$.
+
+  While this relationship is simple on the surface, there does exist a
+  small complication: Where are its endpoints? Remember, the only
+  entities in our problem that hold forces are the nodes of the
+  simulation lattice. While we could enforce the restriction that
+  spring endpoints always coinside with these nodes, it would be more
+  useful to be able to place these force constraints arbitrarily. To
+  do so, we must embed the end points into the lattice. This is
+  similar to how we embed the vertices of our material mesh into the
+  lattice - interpolating nodal displacements. However, in this case,
+  we also must perform the opposite action once we have computed a
+  force - distributing this force back onto the nodes of the cell
+  where the spring was attached.
+
+  With this minor alteration, we can now represent two types of force
+  constraints: Single sided and dual sided. Single sided constraints
+  refer to spring constraints which have one end point embedded in the
+  simulation lattice, while the second is positioned manually in
+  space, acting as a dirichlet constraint. This allows a user to pull
+  regions of the simulated object towards positions in space. By
+  embedded both end points, we can build dual sided constraints. As
+  expected, these constraints act to pull two disparat regions of
+  material closer together. In the context of virtual surgery, this
+  could be used to represent a suture or other similar mechanical linkage.
+  
+  \subsection{Topology Change}
+
+  The last major form of user interaction with the simulated tissue
+  object is via topology change, i.e. cutting. Apart from physically
+  moving tissue around or joining it with sutures, this interaction
+  represents the surgeon's ability to incise tissue with a scalpel or
+  other cutting implement. As such, supporting topology change is very
+  important as otherwise most procedures would be impossible to
+  perform.
+
+  As such, it is worth considering the ways that topology change in
+  simulated objects can be done. Initially, it might be tempting to
+  say that topology change needs to mimic the actual physics of a
+  scalpel cutting tissue. In other words, track the physical forces at
+  the tip of the blade, the strain limit of the tissue, and causing
+  the material of the simulated object to separate as the blade
+  traverses the surface. This approach is appealing due to the
+  naturalness of the effect - as the blade moves, tissue is cleanly
+  cut and slides away from it on either side, just as one might expect
+  in a real life procedure.
+
+  Unfortunately, this form of \textit{online} cutting, where the
+  topology change and deformation solution are fully coupled, is very
+  complicated. It requires careful maintainance of multiple data
+  structures and the stiffness matrix, all while ensuring the problem
+  remains robust and avoids spurious forces. It is also not, strictly
+  speaking, nessessary. If we were approaching the problem from a
+  psychomotor perspective, where we were interested in training the
+  user on how it would feel to cut tissue, this type of cutting would
+  be required to correctly inform haptic feedback devices. However, as
+  stated in the previous chapter, we are mostly interested in the
+  cognitive aspects of plastic surgery. Under this regime, online
+  cutting is less important than providing users a clear interface in
+  which to plan and enact cuts with precision. Further, while it is
+  true that more advanced procedures require cutting tissue which has
+  been pulled back and exposed, there do exist an important class of
+  so-called local flap procedures which can be cut all at once. These
+  procedures are important, as they are serve as core building blocks
+  for more complex procedures, often being composed together in
+  non-trivial ways. It will be this class of procedures we will be
+  focusing on for supporting topology change.
+
+  Instead of supporting online cutting, we instead will design our
+  platform to handle cuts performed at discrete time epochs. In fact,
+  we will provide an additional simplification constraint: All cuts
+  will occur to the material's reference configuration, before any
+  deformation occurs. While this restriction prevents us from
+  attempting the more complex surgical procedures, like a cleft lip
+  repair or operations on highly volumetric regions like the human
+  breast, it easily supports local flap style operations. Yet, even this
+  highly restricted form of topology change has important challanges
+  to overcome. The first challange is what to we mean by topology
+  change in the context of a simulation lattice? If we had replaced
+  our lattice with a simulation mesh, perhaps a conforming
+  tetrahederal mesh, topological change could have meant disconnecting
+  tetrahedra from each other, or even remeshing the object to conform
+  to the cut. However, a lattice typically doesn't have that kind of
+  flexibilty, as its topology is implicit for performance reasons. The
+  best approximation to the tetrahedral case would be to simply remove
+  entire cells, leading to extremely coarse, axis-aligned cuts. In
+  Chapter \ref{Gridiron}, we'll show how these problems can be
+  overcome with the introduction of a hybrid implicit-explicit
+  topology design.
+
+  \subsection{Collision}
+
+  A final topic related to user interaction, and to some degree
+  topology change, is collision. Collision refers to the ability of
+  the simulated object to correctly respond to impact with another
+  object or itself. Collision is a particularly tricky property to
+  support in elastic simulation, espeically self collision. Collision
+  can be broken into two distinct steps: collision detection and
+  collision response, or handling. Collision detection is the aptly
+  named process of determining whether or not collision has occured at
+  any particular point in time. For volumetric objects, which possess
+  distinct inside and outside regions, collision detection typically
+  takes the form of testing for surface penetration. The challange is
+  how to perform this test efficiently, since it needs to run at least
+  once per timestep. For rigid body collisions, i.e. collisons between
+  the soft body and an external rigid object, level sets have been
+  employed quite successfully for collision detection purposes with
+  complexities in the order $O(1)$ for any point of
+  interest. For self collision scenarios, 
+  
+  \section{Engineering Challanges}
+
+
+
+
+
+
+
+
+
+
+
+
+% domain can described by a number of
+% data structures. The classic approach would be to describe the region
+% as a mesh - a collection of discrete points connected by a defined
+% topology. However, other options such as a level sets or density point
+% clouds are also possible. For the purposes of this work, we will be
+% focusing on the first option - meshes.
+% Again, we can work our way down from the real world version
+% to a more mathematical description and finally to a discrete version
+% for the purposes of computation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% or an energy density
+% function $\Psi(\textbf{F})$- which captures the amount of potential energy present at an
+% infintesimal volumtric region as a result of the
+% deformation. Ultimately, the energy density function is our first hook
+% into the precise material properties of our deformable object. By
+% choosing the energy density function carefully, we can make the object
+% respond more strongly to certain types of deformation over others. For
+% instance, a popular measure is the Green Strain:
+
+% $$ $$
+
+
+% The
+% goals of this function is to accurately capture all of the strain
+% energy, while disregarding components of the deformation gradient
+% which result from translations or rotations. 
+
+
+
+% We can use this deformation map to generate a continuous deformation
+% gradient, defined as
+% $$\mathbf F(\vec X): \frac{\partial \phi
+%   (\vec{X})}{\partial \vec{X}}$$
+% This gradient is the 
+
+
+
+
+
+
+
+
+
+
+% For the physical simulation of the human body, or parts of it, we can
+% represent its form as a deformable solid. While it is true that human
+% tissue is composed primarily of water, the collection of tissues that
+% make up human skin, fat, and muscle can be treated as a solid, yet
+% deformable, mass. What then is a deformable solid, from a computer
+% simulation perspective? A \gls{deformablesolid} is a volumetric
+% region whose shape reacts to both internal mechanics and external
+% stimulus events. Right away, this definition opens new questions. What
+% do we mean by shape? And how does it react? What are the internal
+% mechanics and how are they different from external stimuli? In this
+% section, these questions will be looked at in more detail.
+
+% \subsection{State representation}
+
+% The first issue to content with is the fundamental nature of the
+% deformable object in the context of the simulation system. Unlike
+% reality, where such objects are composed of collections of atoms
+% arranged into more complex molecules which in turn give rise to
+% macroscopic behavior, simulated objects exist as we, the developers,
+% decide. Our decisions in this space determine the ultimate potential
+% behaviors of the simulated objects. The main issue facing simulation
+% development is that, unlike reality, computer systems are
+% fundementally an approximation of the extreme complexity found in the
+% real world. As such, we are forced to make trade offs when deciding
+% what features our simulations will be able to support. Many of these
+% trade offs can be rooted in the basic question of state
+% representation.
+
+
+% The first property to consider is that of continuous and discrete
+% representation. Often, real materials are said to be continuous in
+% nature\footnote{This is of course not true. As mentioned before, real
+%   materials are composed of discrete, if extremely numerous,
+%   collections of atoms. But we can generally ignore this fact when looking at large scale
+%   (relatively speaking), bulk behaviors.}, and when we  mathematically
+% reason about their behavior, we typically do so using continuous
+% equations. However, despite the advantages this approach provides,
+% such as easier reasoning about differential behavior, it is quite
+% tricky to represent continuous mathematical models on a computer. This
+% is not an unheard of problem by any means - IEEE floating point
+% representation attempts to solve the exact issue of representing
+% continuous numbers as discrete collections of bits manageable by
+% modern computer architectures. Likewise, it is important to be able to
+% transition between the continuous equations representing material
+% behavior and the discrete versions of them which can be represented
+% by computer hardware.
+
+% But what are these material equations? Again, understanding this
+% aspect requires us to continue examining the question of state
+% representation. In this case, the major question is that of simulated
+% properties. First, let us consider the property of shape. While not
+% always easy to define for all things, such as gases or particulate
+% matter, for the types of objects we are interested in simulating for
+% virtual surgery, we can reasonably say that they possess a defined
+% boundary in three dimensional space. That is to say, there exists a
+% closed two dimensional manifold which separates the inside, or
+% material part, from the outside, the exterior part, of the simulated
+% object. Again though, we face the problem of representation - do we
+% define our boundary as a continuous or discrete entity? Certainly for
+% simple shapes (e.g. spheres, polyhedra), we can describe the boundary
+% through anaylical expressions. But for more complex shapes, such as
+% the organic forms of the human body, these anaylical expressions
+% become extremely complex or impossible to define. And this is before
+% we face the problem of how to represent this anaylical expression on a
+% inherently discrete device such as a computer. To deal with this
+% issue, we turn to alternative discrete representations.
+
+% Our options for discrete boundary representations are numerous. A
+% common approach is to use a mesh representation, where the boundary is
+% defined by a collection of discrete points in space, called vertices,
+% connected together via poliganal faces. While common, this approach
+% suffers from being only $C0$ continuous. Alternatively, spline patches
+% instead of polginal faces can be used to achieve smoother and more
+% accurate representations of a surface. Unfortunately, regardless of
+% the method choosen here, meshes are ultimately surface representations
+% and do not intrinsically indicate which side is to be considered
+% inside and which is outside. While conventions involving winding
+% patterns can help with the determination, other representations, such
+% as volumetric meshes or level sets can supply this information
+% unambigously. Volumetric meshes consist of vertices, but unlike
+% surface meshes, they are joined together by polyhedra instead of
+% polygons. This provides a distinct collection of ``solids'' which
+% clearly delinate the material. Level sets, on the otherhand, are a
+% representation of an object as a sampled collection of distances away
+% from the its surface. This collection allows for easy determination of
+% the objects interior and provides other advantages, such as easy
+% determination of shortest path to the surface.
+
+% In addition to the shape of an object, there are other mechanical
+% properties we might want to store, such as velocity, mass, or
+% acceleration. Exactly which properties depend on what behavior we want
+% to simulate and how we wish to simulate it. For deformable objects, we
+% can typically break this down into three different behaviors, each
+% defined by particular aspects in their continuous equations. Before we
+% can talk about these behaviors, it is important to first describe the
+% basic nature of the continous material equations that govern the
+% behavior of our simulatated objects. As was mentioned at the beginning
+% of this section, the behavior of our simulated objects is a
+% relationship, or function, between applied external forces and the
+% mechanical state of the object, where the state could be position,
+% velocity or other mechanical properties. The precise definition of
+% this function varies, from simple linear relationships to more complex
+% non-linear ones. However, we can also categorize these equations into
+% three broad categories, as mentioned, based on another property,
+% time. The first, static simulations, treat time as an invarient. That
+% is to say, static problems assume that the application of external
+% forces never change and do not include time dependent effects, such as
+% interia and velocity. Dynamic problems, in contrast, directly include
+% time as a variable, allowing for simulatuted material to properly
+% exhibit the properties of velocity and accleration. The third form,
+% quasi-static problems, are a interesting mix between the first
+% two. Quasi-static problems use the same equations as static problems,
+% but allow the external forces to be parameterized by time, with the
+% assumption that the problem is fully solved for each change in the
+% time parameter.
+
+% \subsection{Reference Configuration}
 
 \chapter{Related Work}
 
@@ -895,13 +1850,16 @@ proposed which provide an interesting alternative.  Finally, implicit
 surfaces have also been recently used in real-time skinning
 applications~\cite{VaillBGCRWGP:2013,VaillGBWC:2014}.
 
+
+
+
 \bibliographystyle{unsrt}
 \bibliography{references4}
 
 %% Now the glossary
-%\glossarystyle{altlistgroup}
+% \glossarystyle{altlistgroup}
 %\glsaddall
-%\printglossaries
+\printglossaries
 
 %% Want an index?  Neither did I.
 %\printindex
