@@ -1,0 +1,249 @@
+
+
+
+\chapter{Related Work}
+
+Faced with the challenge of providing an interactive virtual
+environment for authoring plastic surgery simulations, the field of
+computer graphics research has generated many potential solutions and
+techniques to solve this problem. Procedural techniques
+~\citep{JoshiMDGS:2007,WangP:2002,KavanCZO:2008,VaillBGCRWGP:2013} offer real-time
+performance for certain animation tasks but lack the physical accuracy
+needed in surgical simulations. Consequently, some research ventures
+into surgical simulation turned to elastic deformation models
+~\citep{TerzoPBF:1987} that responded more realistically to scenarios of
+probing and cutting ~\citep{BroC:1996,MendoL:2003,NienhS:2001}. However,
+these early works were limited in their scope and effectiveness due to
+computational cost, geometric constraints and oversimplified material
+models. In this section we outline prior contributions that help
+address these limitations, and review a number of existing surgical
+simulation systems.
+
+\subsection{Simulation of Elastic Materials}
+
+Simulation of elastic deformable models is ubiquitous in computer
+graphics and remains a vibrant area of research. Algorithmic
+techniques for deformable body simulation, pioneered by Terzopoulos et
+al \shortcite{TerzoPBF:1987} have attained a significant level of
+maturity, leading to broad adoption in visual effects, games, virtual
+environments and biomechanics applications. Over the years, a number
+of different approaches have been explored for the simulation of
+deformable objects, each with different strengths. 
+
+Lattice-based volumetric deformers are popular components in both
+physics-based and procedural animation techniques. In the case of
+physics-based simulation, one of their key advantages is that they
+avoid having to construct a simulation-ready conforming volume mesh,
+which is a delicate preprocessing task often requiring supervision and
+fine-tuning. Another crucial benefit is that the regularity of such
+data structures enables aggressive performance optimizations as
+vividly demonstrated by shape matching techniques
+~\citep{RiverJ:2007}. Cartesian lattices have also been leveraged to
+accelerate performance in physics-based approaches, albeit
+predominantly for simple models such as linear or corotated elasticity
+~\citep{MuellTG:2004,GeorgW:2008,McAdaZSETTS:2011}. Prior graphics
+work, however, has not demonstrated such aggressive performance gains
+from lattice-based discretizations when highly nonlinear, anisotropic
+or incompressible materials are involved. In part, this is attributed
+to the fact that simulation of complex materials commands an increased
+level of attention to issues of robust convergence. Mature solutions
+to these concerns have predominantly been demonstrated in the context
+of specific discretizations (e.g. explicit tetrahedral meshes) where
+regularity of data structures, compactness of memory footprint and
+parallelization/vectorization potential were not inherently
+emphasized. Furthermore, as applications requiring the use of complex
+materials are also likely to emphasize geometric accuracy, they often
+opt for conforming mesh discretizations due to their superior
+performance in capturing intricate boundary features, even if their
+computational cost is higher.
+
+Despite the popularity and feature set of conforming discretizations,
+many researchers have explored improving embedded techniques for
+reasons of simplicity and performance. Embedding has been combined
+with homogenization ~\citep{NesmePF:2006,KhareMOD:2009} to resolve
+sub-element variation of material parameters, optionally with the use
+of non-manifold embedding lattices to support objects with a branching
+structure ~\citep{NesmeKJF:2009}.  Jerabkova et al.\!
+\shortcite{JerabBBFA:2010} employed a method similar to the one
+presented in Chapter \ref{chp:nonmanifold}, using a finer voxel grid
+to capture material topology to be embedded in a coarser, non-manifold
+voxel grid. Finally, Zhao and Barbi\v{c} \shortcite{ZhaoB:2013}
+demonstrated the use of multiple voxel grid domains to segment a model
+hierarchically, which they used to simulate plants at interactive
+rates.
+
+In addition to classical FEM approaches, some authors have
+achieved success with more exotic variations. Extended FEM (XFEM)
+formulations have also been explored ~\citep{JerabK:2009}, where
+discontinuities are introduced into the element's shape functions, to
+model cutting. In a similar vein, Kaufmann et al.\!
+\shortcite{KaufmMBG:2009} used discontinuous Galerkin FEM
+formulations. Others have dispensed with mesh based discretizations
+completely, preferring meshless methods ~\citep{DeB:2000} which were
+also used for surgical simulation ~\citep{DeKLS:2005}.
+
+\subsection{Anatomical Modeling}
+Approaches based on the FEM have been particularly popular in the
+medical simulation community ~\citep{MarchADC:2008} where the need for
+biologically accurate materials is more pronounced. In one of the
+earliest uses of advanced materials in computer animation, Chen and
+Zeltzer \shortcite{ChenZ:1992} focused on anatomical structures such
+as muscles. FEM techniques were further leveraged in the animation
+literature for the discretization of linear elasticity for fracture
+modeling in a small-strain regime ~\citep{OBriH:1999}. Highly
+nonlinear materials such as active musculature ~\citep{TeranBHF:2003}
+exposed challenges in robustness and numerical stability of FEM
+discretizations. Invertible FEM ~\citep{IrvinTF:2004} improved
+simulation robustness in scenarios involving extreme compression,
+while modified Newton methods ~\citep{TeranSIF:2005} reduced the cost
+of implicit schemes with large time steps. Several of these algorithms
+have been incorporated in open-source modeling and simulation packages
+~\citep{SinSB:2013}. Solutions have also been proposed for material
+behaviors such as incompressibility ~\citep{IrvinSF:2007} and
+viscoelasticity ~\citep{GokteBO:2004,WojtaT:2008}, both of which can
+be found in typical biomaterials.  Recent results in coupled
+Lagrangian-Eulerian simulation of solids have also facilitated the
+inclusion of intricate contact and collision handling in biomechanical
+modeling tasks ~\citep{SuedaKP:2008,LiSNP:2013,FanLP:2014}.
+
+\subsection{Topology Change}
+
+A number of techniques have targetted topology change during
+simulation, due to cutting or fracture. Early work ~\citep{TerzoF:1988b}
+resorted to breaking connectivity of elements when stress limits were
+exceeded. Later methods ~\citep{NienhS:2001} split tetrahedra near cut
+boundaries and then used vertex snapping to more accurately
+approximate the cut. Local remeshing was also employed to simulate
+cracks in brittle materials ~\citep{OBriH:1999}. An issue with such
+subdivision schemes is the possible creation of poorly conditioned
+elements, which prompted a number of authors to pursue embedded
+simulation schemes ~\citep{MolinBF:2004,TeranSBNLF:2005}. These
+techniques use non-conforming meshes with elements which are only
+partially covered by material, in lieu of conforming
+remeshing. Embedded simulation can provide a great degree of
+flexibility in cutting and fracture scenarios ~\citep{SifakDF:2007},
+although cutting meshes along arbitrary surfaces requires delicate
+book-keeping and careful handling of degeneracies.
+
+
+\subsection{Surgical Simulation}
+While much of the previously discussed work is geared towards general
+elastic body simulation in computer graphics, many relevant results
+originated in surgery-specific work. Pieper et al.\!
+\shortcite{PiepeLR:1995} demonstrated a very early surgical simulation
+platform for facial procedures, using FEM elastic shells.  Many
+surgical simulation projects focus on the mechanical manipulation of
+organs and other soft internal objects
+~\citep{NienhS:2001,KimCDS:2007}. Even expensive commercial simulators
+like the Lap Mentor and GI Mentor primarily focus on pushing and
+cutting simulated internal organs
+~\citep{SUSAC:2002--2014b,SUSAC:2002--2014}. These types of simulations
+are so common that several open source frameworks have been built to
+specifically support further development
+~\citep{AllarCFBPDDGo:2007,CavusGT:2006}. These provide easy access to
+common components like haptic feedback and APIs to connect multiple
+simulated components. Certain surgical simulation systems are tailored
+to specific skills, including interactive simulations of needle
+insertion ~\citep{ChentARCHGSO:2009}.
+
+\subsection{Performance Optimization}
+Improving simulation rates is a common challenge for many interactive
+modeling tasks, and even more so for accuracy-conscious applications
+such as virtual surgery. Attempts to improve performance have either
+relied on new data structures, faster solvers, or aggressive use of
+parallelization. The Boundary Element Method ~\citep{JamesP:1999} has
+been used to achieve interactive deformation rates for objects
+manipulated via their surface. Other authors have employed similar
+formulations that abstract away interior degrees of freedom to
+accelerate collision processing ~\citep{GaoMS:2014}. Grid-based,
+embedded elastic models
+~\citep{MuellTG:2004,NesmePF:2006,McAdaZSETTS:2011,PatteMS:2012,MitchCS:2015}
+have been very popular due to their inherent potential for performance
+optimizations, and can also be used with shape-matching approaches
+~\citep{RiverJ:2007}. They form the foundation for a class of highly
+efficient, multigrid-based numerical solution techniques
+~\citep{ZhuSTB:2010,GeorgW:2008,DickGW:2011}.  Regular discretizations
+have also been coupled with multigrid solvers to facilitate GPU
+accelerations for elastic skinning techniques ~\citep{McAdaST:2010}.
+However, in spite of the efficiency of multigrid schemes, adapting
+them to the presence of incisions or other intricate topological
+features can be a nontrivial proposition.
+
+Hermann et al.\!  \shortcite{HermaRF:2009} analyzed data flow in their
+simulations to inform a parallel scheduler for multicore systems. To
+avoid write hazards during parallel code execution, Kim et al.\!
+\shortcite{KimP:2011} proposed a system of computation phases with
+coalesced memory writes, which allowed them to parallelize force
+computation. Related efforts by Courtecuisse and Allard
+\shortcite{CourtA:2009}, developed a parallel version of the
+Gauss-Seidel algorithm that can run on GPUs. Finally, optimized direct
+solvers have been shown to be very effective ~\citep{SinSB:2013} and
+have employed techniques such as delayed updates to factorization
+approaches ~\citep{HechtLSO:2012} for improved efficiency. The
+approach outlined in Chapter \ref{chp:macroblocks} is related to these
+approaches, as well as the general class of Schur complement methods
+~\citep{QuartV:1999}.
+
+\subsection{Level Sets and Collision Handling}
+
+Level set methods were first introduced by Osher and
+Sethian~\shortcite{OsherS:1988} for tracking moving interfaces in the
+context of Hamilton-Jacobi equations.  Subsequently, Adalsteinsson and
+Sethian~\shortcite{AdalsS:1994} proposed substantial runtime savings
+by restricting computations to a thin band of active voxels near the
+interface.  Sethian~\shortcite{Sethi:1998} proposed fast marching
+methods for monotonically advancing fronts as well as for redistancing
+the level set using values seeded only on the narrow band.  Besides
+fast computation, a number of methods have also been proposed for
+efficiently storing level sets including octrees~\citep{LosasGF:2004},
+RLE representations~\citep{HoustNBNM:2006,IrvinGLF:2006,ChentM:2011},
+the VDB data structure~\citep{Muset:2013} which evolved from Dynamic
+Tubular Grids~\citep{NielsM:2006} and the DB+Grid data
+structure~\citep{Muset:2011}, and the virtual-memory based SPGrid data
+structure~\citep{SetalABS:2014}.
+
+Methods have been proposed for computing implicit representations of
+non-manifold surfaces~\citep{BloomF:1995,YuanYW:2012}. Similar ideas
+were used for simulating bubbles~\citep{ZhengYP:2006} and multiphase
+fluids~\citep{LosasSSF:2006}. The work in Chapter \ref{chp:nonmanifold}
+diverges from these approaches as we enhance the expressive capability
+of a \emph{single} level set by embedding signed distance values on an
+explicit mesh. Our work is related to the practice of embedding
+high-resolution geometry in regular meshes, a concept that was first
+leveraged by M\"{u}ller et al.~\shortcite{MulleTG:2004} for deformable
+body simulations and fracture.  In addition to hexahedral embeddings,
+methods such as the virtual node algorithm~\citep{MolinBF:2004} have
+been used to create non-manifold tetrahedral lattices that correspond
+to thin topological features in the embedding geometry. Virtual node
+concepts are also similar to XFEM methods which were used for crack
+modeling~\citep{MoeesDB:1999} and for cutting and fracturing thin
+shells~\citep{KaufmMBGG:2009}. This principle has continued to evolve
+with many of the topological limitations in prior approaches being
+raised by Sifakis et al.~\shortcite{SifakDF:2007} and has been
+successfully used in production tools as well~\citep{HellrSSST:2009}.
+
+Our non-manifold level set approach in Chapter \ref{chp:nonmanifold}
+is inspired by these methods, but it needs to be made cognizant of
+further topological limitations that the signed distance field imposes
+on our representation (see
+Section~\ref{sec:non-manifold-level-sets}). Notably, when dealing with
+collisions near thin features, all of the aforementioned approaches
+employed detection and response techniques based on surface
+meshes~\citep{BridsFA:2002} that rely on the availability of good
+surface meshes, are computationally expensive, presume collision-free
+history or use impulses which makes implicit integration
+challenging. To accelerate collision detection and response while
+allowing for implicit integration, methods have been proposed using
+implicit surface representations~\citep{McAdaZSETTS:2011} which work
+even in near-interactive settings, but require enough level set
+resolution to avoid any non-manifold features altogether. Recently,
+image-based techniques~\citep{FaureBAF:2008,WangFP:2012} have been
+proposed which provide an interesting alternative.  Finally, implicit
+surfaces have also been recently used in real-time skinning
+applications~\citep{VaillBGCRWGP:2013,VaillGBWC:2014}.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../document"
+%%% End:

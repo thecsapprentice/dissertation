@@ -1,0 +1,245 @@
+
+\chapter{Discussion}
+
+The conclusion to any large body of work is difficult, to say the
+least. Nevertheless, it is important to reach some measure of
+knowledge at the end of day, ``the point'' to use a common
+vernacular. In the beginning of this document, a great deal of time
+was spent describing a framework for practical visual interactive
+systems. Later, these high level concepts were specialized into
+systems for authoring plastic surgery operations using physical
+simulation. A fair point can be raised that the subsequent chapters
+did little to further this topic in a direct and obvious fashion. So
+an astute reader is probably asking right now ``What was the point?''
+
+In an attempt to recover the vision of the forest through the
+metaphorical trees of technical details that have been presented thus
+far, this author would like to propose the following argument: The
+goal of creating virtual surgery systems is a valuable endeavor, but
+its value lies not only in the destination, but the path taken to get
+there. It is true that a plastic surgery \gls{pvis} was built and
+demonstrated to actual medical students. But that artifact, and the
+public recognition of it, is only part of the rewards from pursuing
+this path. Along the way, multiple new technologies and techniques
+were investigated, some of them were included in the surgical demo
+while others were not. It would be tempting to say that only the final
+result mattered, that time and effort were wasted on developments
+which were ultimately passed over for inclusion. This would be a
+mistake, however, but one born of understandable perspectives.
+
+Approaching a project as large and as complex as virtual surgery
+simulation, there is room for many disciplines. Medicine, computer
+science, mathematics, engineering, and even business expertise all
+have some part to play in the successful development and deployment of
+these systems. Unfortunately, it is all too easy to be trapped by one
+focus or another. Too much medicine and one can easily be lost in the
+almost infinite complexity of reality, too paralyzed by the details
+to get anything done. Too much mathematics can lead to equally
+unrealistic outcomes, where elegant equations diverge too much from
+the messy realities of biology or become too difficult to
+implement. And it is possible to have too much computer science, as
+well. Which is an odd statement to make in a defense of a computer
+science thesis, but important to understand.
+
+One of the dangers we face in simulation is that we can start to
+believe anything is possible. It may be hard to do, or require a
+complex dance of numerical techniques and new data structures, but
+ultimately anything that occurs in reality should be possible to
+simulate. This idea is seductive, it plays to the egos of researchers
+and while it can lead them to new discoveries and techniques, it often
+creates a bottomless pit of impracticality. This idea is related to a
+topic brought up in Chapter \ref{chp:motivation} on avoiding premature
+optimization. Optimization is generally thought of in simulation as
+the process where we work out how to solve a problem faster, or more
+correctly. But it can also refer to extreme focus, as in ``it was
+optimized to do X, at the cost of excluding Y''. It is this latter
+description which can be problematic, its practice responsible for
+generating solutions which are excellent, but so narrow and limiting
+that they become useless.
+
+This is the problem that we are faced with in building surgical
+simulations as computer scientists. We need to understand when to
+balance our unending desires for a better solution with the practical
+realities faced by other disciplines and each other. It was with this
+consideration in mind that the technologies pursued and presented in
+this document were chosen. It would have been easier, in some ways, to
+focus on one small aspect of surgery simulation, perhaps delivering a
+method to perfectly capture physical tissue responses or a better
+approach for modeling cutting tissue. And there is little doubt that
+these results would have been acceptable from a computer science
+research perspective. Instead, the work presented in this document
+focuses on a different idea: by providing a framework for fast,
+general simulation, by supporting this framework with multiple
+implementations catering to different needs, we can act as a stronger
+foundation for future research. To use a metaphor, a strong solid base
+of concrete rather than an elegant, but spindly tower of glass.
+
+However, this is a computer science dissertation, so it is worth
+spending some time discussing some of the technical takeaways from the
+techniques presented in previous chapters as we conclude this document.
+
+
+\section{Nonmanifold Level sets}
+\label{sec:discussion}
+
+Our pipeline for non-manifold level sets was been specifically created
+for self-collision processing in deformable body simulations. There
+are several diverse applications of the standard (manifold) level set
+concept such as representing geometry, tracking dynamically evolving
+interfaces, as a geometric query structure, etc. However, we believe
+that the current methodology may require application-specific
+embellishments to cater to broader tasks in modeling and simulation,
+beyond what was needed for our collision-oriented proof of concept.
+For example, when two dynamically evolving interfaces are brought
+together, they may either be allowed to merge (as is typical in fluid
+simulations) or overtake one another (e.g.\ the two separate branches
+of the lips during self-collision). Thus, application-specific
+semantics might be needed to use non-manifold level sets for dynamic
+interfaces.  Finally, we showed two examples (Figures
+\ref{fig:zplasty-and-net} and \ref{fig:zero-width}) where the
+simulated elastic model resulted from conceptual ``cutting''
+operations; in both cases we simply generated the non-manifold level
+set from the final, cut geometry. If such cuts were progressively
+enacted during simulation, our present implementation would sustain a
+significant recompuation cost to rebuild the non-manifold implicit
+representation. Incremental update following localized topology change
+will be a significant direction of future investigation.
+
+Currently, we do not extend the non-manifold level set values into a
+narrow band outside the interface because we used the same grid both
+for simulation and for storing level set values. If the extent is
+predetermined, then we could generate a coarse non-manifold level set
+mesh first and refine it as a post-process. Alternatively, one could
+also ``grow'' the non-manifold level set by following characteristics,
+but as mentioned above, one may or may not wish to merge overlapping
+characteristics depending on the context. This issue is also related
+to the question of ``evolving'' a non-manifold level set.  In future
+work, we wish to address these questions targeting the specific
+applications of multiphase flow and crack propagation.  For standard
+Cartesian grid-based level sets, there exists an established
+theoretical foundation for accurately computing high order gradients
+even in the vicinity of singularities. For non-manifold level sets, an
+extra level of complexity is introduced because there can be a
+topological bifurcation in addition to a singularity.  To obtain valid
+values in such complex situations, our current scheme reverts to first
+order element-wise trilinear interpolation.  It would be interesting
+to explore in future work if there can be a more accurate
+representation for the interface in these cases.  In all of our
+examples we generated the non-manifold level set at the same
+resolution as the underlying lattice-based elasticity
+discretization. This was motivated by the fact that the ability of the
+elastic model to respond to collision events is restricted by the
+resolution of the elastic model, limiting the hazards of interpolation
+errors near high-curvature areas.  Although this has been a successful
+heuristic for our test cases, there is no guarantee that such
+resolution will always be accurate for proper collision detection and
+response. A higher resolution can be used for the level set, if
+desired; doubling the linear resolution, for example, would incur an
+8x increase in level set construction, but no worse than a two-fold
+increase of the backtrace cost, in practice (assuming collisions
+remain relatively shallow).
+
+Finally, the current implementation used Cartesian grids as template
+meshes for generating the non-manifold level set. In future work, an
+exploration of different representations such as
+octrees~\cite{LosasGF:2004}, RLE
+representations~\cite{HoustNBNM:2006,IrvinGLF:2006,ChentM:2011}, the
+VDB data structure~\cite{Muset:2013} and SPGrid~\cite{SetalABS:2014}
+would be warranted.
+
+\section{Performance Optimization and Macroblocks}
+
+In Chapters \ref{chp:parallelization} and \ref{chp:macroblocks}, we
+looked at two different approaches for improving the performance of
+computing forces and solving elastic deformation problems. To some
+extent, the two approaches are the result of sequential
+development. While the blocking organization allowed us to compute
+forces for elasticity problems very efficiently, we found that the
+addition of large numbers of force constraints and complex materials,
+like muscle fibers, negatively impacted our ability to achieve
+reasonable convergence with Conjugate Gradients, the iterative solver
+we used for the surgery simulation prototype. At the time, this
+was not a large problem, as we used the partially converged steps of
+the simulation as an approximation of dynamics. Moreover, the
+relatively rapid CG iterations allowed us to present more visual
+updates to users, giving the platform a more responsive
+feel. Nevertheless, we were hoping to improve upon the poor
+convergence we were seeing, a quest which ultimately led us to the
+macroblock idea. Unfortunately, despite achieving the goal of better
+convergence and a better ratio of memory to computational resources,
+this technique fell short in several important areas.
+
+The most important limitations of our macroblock formulation are (a)
+the restriction of our scheme to Cartesian lattice-based
+discretizations of elasticity, and (b) the explicit lack of support
+for self collisions or other elastic interactions that would couple
+together disjoint parts of the mesh. We consciously limited our
+preliminary exploration to applications of macroblocks within a
+Newton-Raphson iterative solution scheme. In principle, there would
+have been an opportunity to also consider using macroblocks in the
+design of a highly efficient box smoother for multigrid, or as a
+replacement of the local optimization step in projective dynamics; we
+defer exploration of those interesting threads to future work. In
+terms of practical performance, the macroblock technique also includes
+an expensive factorization step. While this process should be
+vectorizable, and thereby mitigating this cost somewhat, it remains a
+significant bottleneck for interactive use cases at the moment. It is
+this issue, along with the lack of self collision support, which has
+prevented it from being included in the current iterations of the
+plastic surgery simulation tool.
+
+\section{Surgery Simulation Platform}
+
+We found that our participants were extremely comfortable with aspects
+of 3D visual navigation, even with the very rudimentary orientation
+that was provided. Most participants found the visual examples of
+procedures demonstrated to be very enlightening, with many of them
+commenting that this visual illustration was the most informative
+exposure they had for procedures they only knew from reference
+literature (most of them had not witnessed these procedures in the
+operating room). Almost no participant volunteered the lack of
+self-collision processing as an observed omission, until the
+interviewer explicitly asked them about this aspect (all
+demonstrations in our workshop entailed full suturing of wound
+closure). On the contrary, several participants identified
+inaccuracies in the elastic behavior of the virtual tissues, finding
+that our models appeared to be more ``permissive'' to manipulation
+than real flesh tissue. An interface feature that was pointed out as
+lacking, is the inability to appreciate (simply by looking at the
+final sutured result) the deformation patterns that have resulted from
+a certain repair; it was suggested that adding a texture (grid lines
+or checkerboard patterns) on the skin surface would be much more
+useful in evaluating tissue strain and deformation. We also received
+requests for biologically inspired aids - in particular a
+visualization of anatomical elements such as blood vessels in the
+tissue being cut. Several users requested more traditional animation
+features, such as timeline scrubbing and history undo, as well as
+side-by-side views of different repair approaches for visual
+comparison.
+
+As was mention in Chapter \ref{chp:deployment}, the feature set of the
+surgical tool was relatively modest. These limitations were a
+conscious choice to allow us to focus on the platform itself,
+balancing performance and extensibility. From a research standpoint,
+our biggest perceived challenge is improving the accuracy of the
+constitutive models for the biomaterials involved. Full self-collision
+support will be essential for extending our work to procedures that
+rely on contact, in addition to sutures, to model properly. We hope
+that the non-manifold level set approach from Chapter
+\ref{chp:nonmanifold} will prove to be a good solution for this
+problem. Finally, a large class of reconstructive procedures cannot be
+modeled with all incisions performed at the beginning of time; a
+flexible topology change modeling system would be necessary to
+incorporate a seamless ability for topology change, concurrent with
+deformation.
+
+  
+
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../document"
+%%% End:

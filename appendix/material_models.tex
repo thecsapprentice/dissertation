@@ -1,0 +1,127 @@
+
+\chapter{Material Models}
+\label{apx:materialmodels}
+
+\noindent We provide the necessary formulas for implementing the following four material
+models referenced in Chapter \ref{chp:engineering}:
+\begin{itemize}
+\item Linear Elasticity
+\item Corotated Linear Elasticity
+\item The St.\ Venant-Kirchhoff model
+\item Neohookean Elasticity
+\end{itemize}
+
+Among the listed physical quantities, $\Psi_0(\mathbf{F})$,
+$\mathbf{P}_0(\mathbf{F})$, $M(\mathbf{F})$ and $\mathbf{Q}(\mathbf{F})$ have
+been concretely defined in our paper. We define the stress derivative tensor
+$\hat{\mathcal{T}}=\partial\hat{\mathbf{P}}/\partial\mathbf{F}$ indirectly, by listing the corresponding sparse rotated tensor
+$\hat{\mathcal{T}}^D$, defined by \citet{TeranSIF:2005}. The relation between the
+two tensors is given by the equation
+
+$$
+\hat{\mathcal{T}}:\delta\mathbf{F}=
+\mathbf{U}
+\left[
+\hat{\mathcal{T}}^D:
+\left(
+\mathbf{U}^T\delta\mathbf{FV}
+\right)
+\right]
+\mathbf{V}^T
+$$
+
+We also provide the sparse rotated form $\mathcal{T}^D$ of the stress derivative
+tensor $\mathcal{T}=\partial\mathbf{P}/\partial\mathbf{F}$ which is obtained if
+the conventional approach of \citet{TeranSIF:2005} is followed, instead of our
+pressure-augmented mixed formulation. The definiteness fix described in our
+paper amounts to a modification of $\hat{\mathcal{T}}^D$ as follows:
+
+$$
+\hat{\mathcal{T}}^D_{\mbox{\small fixed}}:=\hat{\mathcal{T}}^D(\mu;\lambda)+\mbox{\textbf{Def}}\left\{\mathcal{T}^D(\mu;\lambda^\ast)\right\}-\mathcal{T}^D(\mu;\lambda^\ast)
+$$
+
+In this expression $\mbox{\textbf{Def}}\left\{\cdot\right\}$ indicates the
+projection of the sparse rotated stress tensor to its symmetric positive
+definite part (as detailed in \citet{TeranSIF:2005}), and $\lambda^\ast$ is an
+adjusted Lam\'{e} coefficient corresponding to \emph{moderate} ($\nu<0.4$) incompressibility.
+
+\paragraph{List of symbols}
+
+\begin{itemize}
+\item $\bvec{\epsilon}:=\frac{1}{2}\left(\mathbf{F}+\mathbf{F}\right)-\mathbf{I}$ is
+    the infinitesimal strain tensor (also known as Cauchy's strain tensor, or
+    small strain tensor).
+\item $\mathbf{E}:=\frac{1}{2}\left(\mathbf{F}^T\mathbf{F}-\mathbf{I}\right)$ is
+  the nonlinear Green strain tensor.
+\item Matrices $\mathbf{R}$ and $\mathbf{S}$ are the factors of the Polar
+  Decomposition $\mathbf{F}=\mathbf{RS}$.
+\item Matrices $\mathbf{U},\ \mathbf{\Sigma}$ and $\mathbf{V}$ are the factors
+  of the Singular Value Decomposition $\mathbf{F}=\mathbf{U\Sigma
+    V}^T$. The singular values are denoted by $\sigma_i=[\Sigma]_{ii}$.
+\item $I_1:=\|\mathbf{F}\|_F^2=\tr(\mathbf{F}^T\mathbf{F})$ is the first
+  isotropic invariant.
+\item $J:=\det(\mathbf{F})$ is the volume change ratio.
+\end{itemize}
+
+\begin{landscape}
+
+%\thispagestyle{empty}
+\begin{table}[h]
+%\small
+\centering
+\begin{tabular}{|C{1in}|C{1.75in}|C{1.75in}|C{1.75in}|C{1.75in}|}
+\hline
+\newline& Linear Elasticity & Corotated Linear Elasticity & St.\ Venant-Kirchhoff  & Neohookean Material \\
+\hline
+\hline
+$\Psi_0(\mathbf{F})$
+	& $\mu\|\bvec{\epsilon}\|_F^2$
+		&  \newline $\mu\|\mathbf{F}-\mathbf{R}\|_F^2$\mbox{\small, or} \newline$\mu\|\mathbf{S}-\mathbf{I}\|_F^2$\mbox{\small, or} $\mu\|\mathbf{\Sigma}-\mathbf{I}\|_F^2$ \newline
+			& $\mu\|\mathbf{E}\|_F^2$
+				& $\frac{\mu}{2}(I_1-3)-\mu\log(J)$ \\
+\hline
+$\mathbf{P}_0(\mathbf{F})$
+	& $2\mu\bvec{\epsilon}$
+		&  $2\mu(\mathbf{F}-\mathbf{R})$
+			& $2\mu\mathbf{FE}$
+				& \newline $\mu(\mathbf{F}-\mathbf{F}^{-T})$ \newline \\
+\hline
+$M(\mathbf{F})$
+	& $\tr(\bvec{\epsilon})$
+		&   \newline $\tr(\mathbf{S}-\mathbf{I})$\mbox{\small, or} $\tr(\mathbf{\Sigma}-\mathbf{I})$\newline
+			& $\tr(\mathbf{E})$
+				& $\log(J)$ \\
+\hline
+$\mathbf{Q}(\mathbf{F})$
+	& \newline $\mathbf{I}$  \newline
+		&  $\mathbf{R}$
+			& $\mathbf{F}$
+				& $\mathbf{F}^{-T}$ \\
+\hline
+$\delta\mathbf{\hat{P}}(\delta\mathbf{F},\delta p;\mathbf{F},p)$
+	& \newline $\mu(\delta\mathbf{F}+\delta\mathbf{F}^T)+\alpha\delta p\mathbf{I}-\alpha^2p/\kappa$  \newline
+		&  \emph{Use tensor $\mathcal{T}$ instead}
+			& \emph{Use tensor $\mathcal{T}$ instead}
+				& \emph{Use tensor $\mathcal{T}$ instead} \\
+\hline
+$\hat{\mathcal{T}}^D$ \newline ($i\ne j$ implied \newline in  formulas)
+	& \emph{Not an isotropic model -- Use explicit $\delta\mathbf{\hat{P}}$ formula}
+		&  \newline $\hat{T}_{iiii}=2\mu$ \newline $\hat{T}_{iijj}=0$ \newline $\hat{T}_{ijij}=2\mu+\frac{\alpha p-2\mu}{\sigma_i+\sigma_j}$ \newline  $\hat{T}_{ijji}=\frac{2\mu-\alpha p}{\sigma_i+\sigma_j}$ \newline
+			& \newline $\hat{T}_{iiii}=\mu(3\sigma_i^2-1)+\alpha p$ \newline $\hat{T}_{iijj}=0$ \newline $\hat{T}_{ijij}=\mu(\sigma_i^2+\sigma_j^2-1)+\alpha p$ \newline  $\hat{T}_{ijji}=\mu\sigma_i\sigma_j$ \newline
+				& \newline $\hat{T}_{iiii}=\mu+\frac{\mu-\alpha p}{\sigma_i^2}$ \newline $\hat{T}_{iijj}=0$ \newline $\hat{T}_{ijij}=\mu$ \newline  $\hat{T}_{ijji}=\frac{\mu-\alpha p}{\sigma_i\sigma_j}$ \newline \\
+\hline
+$\mathcal{T}^D$ \newline ($i\ne j$ implied \newline in  formulas)
+	& \emph{Not an isotropic model -- Use explicit $\delta\mathbf{\hat{P}}$ formula}
+		&  \newline $T_{iiii}=2\mu+\kappa$ \newline $T_{iijj}=\kappa$ \newline $T_{ijij}=2\mu+\frac{\kappa\str(\mathbf{\Sigma}-\mathbf{I})-2\mu}{\sigma_i+\sigma_j}$ \newline  $T_{ijji}=\frac{2\mu-\kappa\str(\mathbf{\Sigma}-\mathbf{I})}{\sigma_i+\sigma_j}$ \newline
+			& \newline $T_{iiii}=\sigma_i^2(3\mu-\kappa)+$\newline$\hspace*{.6in}+\frac{\kappa}{2}\tr(\mathbf{\Sigma}^2-\mathbf{I})-\mu$ \newline $T_{iijj}=\kappa\sigma_i\sigma_j$ \newline $T_{ijij}=\mu(\sigma_i^2+\sigma_j^2-1)+$\newline$\hspace*{.2in}+\frac{\kappa}{2}\tr(\mathbf{\Sigma}^2-\mathbf{I})$ \newline  $T_{ijji}=\mu\sigma_i\sigma_j$ \newline
+				& \newline $T_{iiii}=\mu+\frac{\mu-\kappa[\log(J)-1]}{\sigma_i^2}$ \newline $T_{iijj}=\frac{\kappa}{\sigma_i\sigma_j}$ \newline $T_{ijij}=\mu$ \newline  $T_{ijji}=\frac{\mu-\kappa\log(J)}{\sigma_i\sigma_j}$ \newline \\
+\hline\end{tabular}
+\label{tab:mat2}
+\end{table}
+
+\end{landscape}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../document"
+%%% End:

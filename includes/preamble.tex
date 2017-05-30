@@ -16,7 +16,7 @@
 
 %% You should use natbib
 \IfFileExists{natbib.sty}{%
-\usepackage{natbib}%
+\usepackage[authoryear]{natbib}%
 }{}
 
 \usepackage[margin=1in]{geometry}
@@ -31,6 +31,7 @@
 \IfFileExists{appendix.sty}{%
 \usepackage{appendix}%
 }{}
+
 
 %% the spacing in memoir is weird, you'll need to use this
 \DisemulatePackage{setspace}
@@ -91,6 +92,12 @@
 \usepackage{comment}
 \usepackage{forest}
 \usepackage{float}
+
+\newcommand{\tr}{\ensuremath{\mbox{tr}}}
+\newcommand{\str}{\ensuremath{\mbox{\small tr}}}
+\newcommand{\bvec}[1]{\hbox{\boldmath $#1$}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
 
 \definecolor{light-gray}{gray}{.9}
 \definecolor{dark-gray}{gray}{0.60}
@@ -284,7 +291,10 @@
 }
 \makeatother
 
+
+\renewcommand{\sc}{\scshape}
+
 %%% Local Variables:
 %%% mode: latex
-%%% TeX-master: "../dissertation"
+%%% TeX-master: "../document"
 %%% End:

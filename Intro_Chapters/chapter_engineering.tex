@@ -1,0 +1,728 @@
+
+\chapter{Engineering Deconstruction}
+\label{chp:engineering}
+
+Given the design challenge of creating a \acrlong{pvis} for plastic
+surgery training, the next question is by what methods can best
+accomplish this task. Commercially, there exist examples of surgical
+simulation products based on both procedural animations and physical
+simulations. As discussed in the previous chapter, a detailed
+procedural animation can meet many of the goals for a surgical
+training \gls{pvis}. The choice of these methods can by provide realistic geometry,
+respond to user inputs by advancing down pre-scripted event chains,
+and serve as a functional replacement for traditional illustrated
+procedure guides. However, they fall short when assisting in cognitive training
+tasks.
+
+In these scenarios, the surgeon undergoing training is expected to be
+developing a mental intuition for how operations work at a fundamental
+level and be capable of adapting this knowledge to new
+situations. These requirements go beyond a simple recall of the
+``correct'' approach and instead requires surgeons to understand the
+behaviors of tissue at a intuitive level. Traditionally, this level of
+understanding is gained through years of experience working with live
+patients, or animal models. Through this process, surgeons experiment
+with designs (with experienced mentors guiding them) and observe the
+results in order to better understand what works and what does not. It
+is the support of this intellectual freedom, the ability to deviate
+from diagrams in textbooks, that is important for a plastic surgery
+\gls{pvis} to capture. To address these concerns, we turn away from
+procedural animations to physical simulation. Physical simulation can
+help address this problem by providing correct, real-time responses to
+a user's actions, regardless of what actions they take.
+
+The remaining chapters in this document will discuss technical
+contributions that will help in building a plastic surgery training
+\gls{pvis} with physical simulation, but the goal of this chapter is
+to deconstruct the basic engineering challenges found in this
+space. This will help frame the work presented in subsequent chapters,
+which can otherwise feel somewhat disconnected from the topics of
+plastic surgery or \gls{pvis} design in general.
+
+\section{The Goal}
+
+To start, let us bring the topic of discussion down from the higher
+level theory discussed in the the previous chapter and provide a
+concrete goal for what we want to provide. At the core, our proposed
+surgical \gls{pvis} can be described as a system which provides three
+dimensional models of tissue a reactive mechanical response to previously
+unscripted user input. Let us break this down further and look at each
+of these parts in more detail. 
+
+First, what does it mean to have a three dimensional tissue model with
+mechanical responses?  Starting from the real world, it can be said
+that tissues are fundamentally collections of cells, or more
+basically, atoms. Considering the collection as a whole, these small
+elements give rise to the tissue's shape and form. We will return to
+this idea of small elements later in the chapter, but for now let us
+reason about these materials as if they were continuous entities. We
+do this for the convenience of reasoning about them in a mathematical
+sense, for ultimately all of the complex physical behaviors we expect
+from soft, squishy materials can be described by equations for stress
+and strain.
+
+To begin, we can consider an abstraction: a model of
+tissue which consists of a closed boundary in three dimensional
+coordinate system and the region which it encloses. We will be
+referring to this region of space as the object's domain, represented
+by the symbol $\Omega$. Later, we will talk about how to represent
+this domain discretely on a computer, but for now simply treat it as a
+prescribed region.
+
+The next challenge is to describe what we mean by mechanical
+response. Mechanical response of soft bodies, such as human tissue,
+can be described as a series of relationships between shape, forces,
+and energy. We will be using these relationships to convert between
+one aspect and another - in other words, produce new shapes from
+considering the forces applied to an object. To explain this idea, let
+us first consider a hypothetical elastic object, such as a block of
+rubber. If one was to squeeze the block from two opposite sides, it
+would deform, or change shape. And if the block is released, the shape
+returns to the original configuration. What is happening in this
+situation is the physical manifestation of the relationship between
+the applied forces, the block's internal energy, and its shape. In
+particular, we are primarily interested in a class of materials known
+as \gls{hyperelastic} materials. These materials are idealized as they
+do not consider the object's prior deformation history when we compute
+their current state and depend only on the current shape of the
+object. The alternative would be some degree of
+\gls{plasticity}. Plasticity effects are incredibly common in real
+life, from the persistent wrinkles in uncrumpled paper to the fact
+that metal holds its shape after being bent. Despite this, we can
+avoid introducing the complexity of these effects by noting that human
+tissue, which exhibits plastic effects over long periods of time, is
+effectively hyperelastic during the time frame of a typical surgical
+operation. However, none of this really describes how these materials
+work at a mathematical level. To do so, we return to our high school
+physics lectures.
+
+\section{Equations for Deformation}
+
+If we recall Newton's Third Law of Motion, external forces applied to
+objects are met with an equal and opposite force. But if we look at
+the object holistically, we would see that these opposing forces
+don't just exist on the surface, but are distributed internally
+throughout the object's material. These internal forces are referred
+to as mechanical stress. Stress is defined to be force applied over an
+cross-sectional area, or volume for three dimensional objects. If we
+were to look at a single point of an object, we could define the
+internal stress of that point by a second dimensional tensor, which
+describes what force vectors are felt by that point in three
+orthogonal directions. Ultimately, this internal stress field causes
+the object to deform, or change shape, resulting in strain - the
+mechanical term for a related tensor value which is defined as the
+ratio of changed length (or volume) compared to the original
+length. The strain tensor, in combination with the specific material
+being deformed, represents a quantity of potential energy. This energy
+represents the amount of work required to deform the object.  Given
+these basic mechanical deformation concepts, we can now develop a
+theoretical framework for simulating deformable objects.
+
+The first part of that process is describing our representation of
+state. To do so, we return to the object's shape. The deformation of
+an object is the change in shape between one configuration and
+another. In order to keep track of the deformation, we can record it
+relative to a object's reference configuration. This is an arbitrarily
+chosen shape in the coordinate system of the object from which all
+other deformations are measured. Mathematically, we can define this as
+a mapping between the domain of the object and $\mathbf{R}^3$:
+$$\phi: \Omega \rightarrow \mathbf{R}^3$$. Under this regime, we
+consider the domain of $phi$ to be points in $\Omega$, often referred
+to as material locations as they can conceptually be considered
+infinitesimal blobs of deformable material. We simultaneously locate and
+identify them by a spatial vector: $\vec{X} = (X, Y, Z)$. The points
+in $R^3$ which make up the image of $\phi$ are the corresponding
+deformed locations $x$. It is worth noting that the reverse mapping
+could have been considered, i.e the mapping that projects from a shape
+back to the reference configuration. This type of relationship is
+not unusual in computer graphics, for instance via mesh
+parameterization for texture mapping. Unfortunately, this relationship
+is a little harder to deal with, especially if we wish to handle
+situations where the mapping is not one-to-one, such as when the
+deformation causes the object to overlap with itself. For the
+techniques presented in this document, we will be using a reference
+configuration that is non-self penetrating and a forward deformation
+map to avoid these problems.
+
+Now that we can define what it means for an object to be deformed, we
+can return to the problem of the stress, strain, and energy
+relationships. To do so, we'll be using the concept known as a
+deformation map. As mentioned previously, the strain an object has
+under deformation is spatially varying tensor field which describes
+the ratio of stretch or compression. In order to access this information,
+we can take the derivative of the deformation map $\phi$:
+
+\begin{equation}
+  \label{equ:deformationgradient}
+  \mathbf{F}(\vec{X}) = \frac{\partial \phi(
+      \vec{X} )}{ \vec{X} }
+\end{equation}
+
+We call this function $F$ the deformation gradient and it is almost,
+but not quite equivalent to the strain. The reason is that the object's
+strain should be invariant to rigid body transformations,
+i.e. translations and rotations. However, it is still reasonable to
+use this value as a basis for computing the corresponding strain
+energy, the potential energy captured by the deformation. To do so, we
+use another relationship called a strain measure. The strain measure
+attempts to provide a quantitative measure of the amount of
+deformation. To put it another way, the strain measure acts as a
+filter - it enhances aspects of the deformation gradient that the
+object should respond more strongly to (e.g. sheer) while reducing the
+effect of those it should be invariant to (e.g. rotation). There exist
+several popular strain measures which vary in computational complexity
+and in accuracy. A common and easy strain measure is the the small
+strain measure $\epsilon$, which has the following form:
+
+\begin{equation}
+  \label{equ:smallstrain}
+  \epsilon = \frac 1 2 (\mathbf{F} + \mathbf{F}^T) - \mathbf{I}
+\end{equation}
+
+While it has nice properties, by acting as a linear
+relationship between an object's deformation and its strain energy, the small
+strain measure suffers from not being invariant to rotations,
+making it typically unsuitable for large deformations. In contrast,
+the Green strain $\mathbf{E}$ is more robust under such conditions,
+but gives up the linearity property as a result:
+
+\begin{equation}
+  \label{equ:greenstrain}
+  \mathbf{E} = \frac 1 2 (\mathbf{F}^T\mathbf{F}-\mathbf{I})
+\end{equation}
+  
+Once we have chosen the strain measure for our material, we can use
+it to derive the material's energy density function
+$\Psi(\mathbf{F})$. This is a measure of the potential energy due to
+deformation per unit volume of the material. If we integrate this
+function over the entire domain $\Omega$ of the object, we can compute
+the total energy contained in the object as a result of the
+deformation. The energy density function is critical in describing a
+material, as all other equations describing its state can be derived
+from it. Similar to the strain measure, there are several popular
+energy density functions which can describe generic deformable
+materials. Linear elasticity, Equation \ref{equ:linearelasticity},
+which derives from the small strain tensor, is easy and uncomplicated
+to compute due to its linear relationship to the deformation
+gradient. However, since it is based on the small strain tensor, it is
+not rotationally invariant and can exhibit physically inaccurate
+behaviors under large deformations.
+
+\begin{equation}
+  \label{equ:linearelasticity}
+  \Psi(\mathbf{F}) = \mu \epsilon : \epsilon \frac \lambda 2 \text{tr}^2(\epsilon)
+\end{equation}
+
+However, just as with the small strain tensor and the Green strain
+tensor, there exist more accurate, if non-linear, energy density
+functions. If we simply replace the strain tensor used in the Linear
+elasticity model with the Green strain tensor, we get what is known as
+the St. Venant-Kirchhoff elasticity function (Equation
+\ref{equ:stvenantkirchhoff}).
+\begin{equation}
+  \label{equ:stvenantkirchhoff}
+  \Psi(\mathbf{F}) = \mu \mathbf{E} : \mathbf{E} \frac \lambda 2
+  \text{tr}^2(\mathbf E)
+\end{equation}
+Unfortunately, this description of elastic energy is highly nonlinear
+and has the unfortunate side effect of reducing resistance to
+compression once the material has been compressed past a certain
+threshold. In the film production industry, another nonlinear energy
+function is often used instead, called Co-rotated elasticity. This
+model is based off a new strain measure created from a polar
+decomposition of the deformation gradient,
+\begin{gather*}
+\mathbf F = \mathbf R\mathbf S\\
+\epsilon_c = \mathbf S - \mathbf I
+\end{gather*}
+
+resulting in a energy density function which maintains the rotational
+invariance properties ideal for large deformations, but remains
+similar enough to a linear relationship to be more predictable under deformation. 
+\begin{equation}
+  \label{equ:corotatedelasticity}
+   \Psi(\mathbf{F}) = \mu \epsilon_c : \epsilon_c \frac \lambda 2
+   \text{tr}^2(\epsilon_c) = \mu \lVert S - I \rVert^2_F \frac \lambda 2
+   \text{tr}^2(S-I)
+\end{equation}
+
+From the energy density expression, it becomes a relatively simple
+matter to derive the energy for the entire deformed domain $\Omega$ by simply
+integrating the density:
+
+\begin{equation}
+  \label{equ:systemenergy}
+  E(\phi) = \int_\Omega \Psi( \mathbf F ) \,d\vec{X}
+\end{equation}
+
+Once we have a description of the material's energy, we can derive a
+secondary expression for the stress. Remember, similar to strain, the
+stress tensor is a evaluation of the force a material experiences at
+an infinitesimal volumetric region. In this document, we will be mostly
+concerned with one type of stress tensor, the 1st Piola-Kirchhoff
+stress tensor $\mathbf{P}$, which is a second order, $3 \times 3$
+tensor. Fortunately, for the class of materials we are interested in
+here, hyperelastic materials, the definition of the stress tensor is
+straightforward:
+\begin{equation}
+  \label{equ:piolakirchhoffstresstensor}
+  \mathbf{P}(\mathbf F) = \frac{ \partial \Psi(\mathbf F)}{\partial
+    \mathbf F}
+\end{equation}
+
+Finally, we can compute the force density (force per unit volume) at a
+material point, by taking the divergence of $\mathbf P$:
+
+\begin{equation}
+  \label{equ:forcedensity}
+  \vec{\mathit f}(\vec X) =
+  \text{\textbf{div}}_{\vec X}\mathbf P (\vec X)
+\end{equation}
+
+For our subsequent discussion we will not restrict ourselves to a
+particular material model. Instead, we will treat $\Psi(\mathbf{F})$
+as a placeholder for any material-specific energy density
+definition. Specific energy formulas for common material models are
+provided in Appendix \ref{apx:materialmodels}.
+
+\section{Solving for Mechanical Response}
+\label{sec:engineering:solving}
+
+With these equations in hand, we can now reason about how to produce
+realistic mechanical responses from materials - the question we opened
+this chapter with. At this point, it is time to also return to the
+initial description of our material as a composition of small
+elements. Of course, in our case, the small elements are not the same
+as cells in human tissue, but they do represent finite quanta of
+material, thus giving rise to the name of the approach we will be
+using throughout this document: \gls{fem}. We now move away from the
+continuous world we were previously occupying into a discrete one more
+suitable for computation on computers.
+
+In our new discrete world, we must first translate our former
+continuous domain $\Omega$ into a data structure representable on a
+computer. Here we have a number of choices to pick from. \gls{fem}
+literature has described many approaches for discretization over the
+years, ranging from volumetric meshes to particle based
+approaches. These designs can be evaluated over several categories:
+regularity, conformity, and ease of use. Regularity refers to the
+extent that the technique uses repeating data structures or provides
+implicit internal relationships that can be predicted, which is often
+extremely beneficial for performance. Conformity refers to how well
+the data structure represents the object's boundary shape. Finally,
+ease of use is a catch all term that includes any quality which makes
+the data structure easy or troublesome to include in higher level
+pipelines. In this document, the approach we will be using is a mesh
+discretization. In particular, we will be using a design referred to
+as an embedding lattice. This data structure is extremely regular and
+generally easy to construct, though it can suffer from a lack of
+conformity. 
+
+With this representation, our material will be sampled at Cartesian
+nodes of a regular hexahedral lattice and our elements of computation
+will be its cells. We refer to these nodes as degrees of freedom, as
+they represent the discrete points where deformation can occur. To
+deal with the issue of conformity, we can utilize a technique known as
+lattice embedding - where the discrete vertices of our object's
+surface, typically represented by another mesh, are embedded in cells
+of the lattice via a weighted interpolation of its nodes. Later in
+this document, additional techniques will be presented to further
+increase the accuracy of the lattice's surface conformity. Moreover,
+since the terms presented in regards to embedding can be confusing, we
+will stick to the following terminology:
+
+\begin{description}
+\item[lattice] - The simulation lattice is the discrete representation
+  of our simulation domain and is composed of cells of material known
+  as elements. Through the simulation lattice, we compute strains,
+  stresses, and ultimately forces.
+\item[node] - A node is a topological point in our simulation lattice,
+  also called a degree of freedom, or DOF. It records values of
+  deformation and the resulting forces.
+\item[cell] - A cell is the basic computational unit of our simulation
+  lattice. It is represented as a regular hexahedral volume and
+  connects the eight nodes at its corners.
+\item[mesh] - Our material surface is represented by a mesh. This mesh
+  is conforming, i.e it attempts to match the shape of the continuous
+  domain as closely as possible. The deformed material surface is the
+  desired visual result of our deformation simulation.
+\item[vertex] - A vertex is a topological point in our material
+  mesh. While it is deformed by the simulation lattice, its position
+  in space is wholly determined by its embedding relationship,
+  typically bi-linear, to its parent cell.
+\end{description}
+
+Using this simulation lattice as a discrete approximation of our
+continuous domain, we can now translate the concepts from the previous
+section. Instead of material points, we have nodes. Each node is
+identified by an identifier. This identifier can be as simple as an
+integer, e.g. Node 52, but since we are using a regular lattice, we
+will continue with the previous spatial labeling, although in this case we
+will now use integer coordinates. Our former concept of a reference
+configuration will remain, by assigning each node a reference position
+in space. Defining our deformation map $\phi$ then becomes as
+simple as:
+\begin{equation}
+  \label{equ:discretedeformationmap}
+  \phi(\vec{X}:\mathbf x) = \sum_i x_i \mathcal N_i(\vec{X})
+\end{equation}
+
+Where we define $\mathbf x = {x_1, x_2, x_3, \ldots, x_n}$ to be our
+deformation state, which includes the displacement of every node in
+our lattice from its reference location. In this expression
+$\mathcal N_i$ is the \textit{shape function} for each node in the
+cell. This shape function corresponds to the interpolation method we
+will employ, for example tri-linear or tri-cubic interpolation. Using this
+new description of $\phi$, we can derive a continuous definition of the
+deformation map for any point $\vec{X}$ inside the cell just as
+before:
+
+\begin{equation}
+  \label{equ:discretedeformationgradient}
+  \mathbf F(\vec{X}:\mathbf x) = \frac{ \partial \phi(\vec{X}:\mathbf x)
+  }{\partial \vec{X}} + \mathbf I
+\end{equation}
+
+In this expression for the deformation gradient, we include an
+identity term which compensates for the fact that our deformation
+state $\mathbf x$ is a record of relative displacements and not
+absolute deformed positions.  From this expression, we can sum the
+energy contributions from each discrete cell $e$. This results in an
+energy expression for the discrete state of the object:
+
+\begin{equation}
+  \label{equ:discreteenergy}
+  E(\mathbf x) = \sum_e E^e(\mathbf x) = \sum_e \int_{\Omega_{e}}\Psi^e( \mathbf F(\vec{X}:\mathbf x) ) \,d \vec{X}
+\end{equation}
+
+From these expressions, we can derive an expression for forces at each
+node by simply taking the derivative of the systems energy at each
+cell and summing its contribution onto the node:
+
+\begin{equation}
+  \label{equ:discreteforces}
+  \vec{f}_i(\mathbf x) = \sum_{\mathcal N_i} \vec{f}_i^e(\mathbf x)
+  \text{, where } \vec{f}_i^e = \frac{\partial E^e(\mathbf x)}{\partial \mathbf x}
+\end{equation}
+
+Using this relationship between nodal displacements and nodal forces,
+we can finally describe the process for computing deformations.
+
+For the purposes of this discussion, we'll be limiting our focus to
+quasi-static deformation simulation sequences. Quasi-static deformations are the
+result of the system being solved for internal equilibrium while we
+change external positioning constraints. Generally, this idea boils
+down to solving for:
+
+$$
+\mathbf f(\mathbf x) = 0
+$$
+Where
+$\mathbf f = {\vec{f}_1, \vec{f}_2, \vec{f}_3, \ldots, \vec{f}_n}$ is
+our force state, similar to $\mathbf x$ as our deformation state.
+Since the relationship between forces and deformation is generally
+non-linear, unless we are using a linear elasticity model for small
+deformation situations, we can use a standard Newton-Rhapson iteration
+approach to solve for $\mathbf x$ such that $\mathbf f(\mathbf x) =
+0$. At each $k$ steps of this iteration, we need to compute a linear
+approximation of our force-deformation relationship around our current
+solution:
+
+\begin{equation}
+  \mathbf f(\mathbf x_k + d\mathbf x) \approx \mathbf f(\mathbf x_k) +
+  \frac{\partial \mathbf{f}}{\partial \mathbf x}\biggm|_k\,d\mathbf x
+\end{equation}
+
+In this expression, we compute the force derivative around the state
+at iteration $k$. Since we are interested in having our update
+$d\mathbf x$ make our forces zero, we can derive the Newton-Rhapson
+update expression:
+
+\begin{equation}
+  \label{equ:newtonstep}
+  \underbrace{- \left(\frac{\partial \mathbf{f}}{\partial \mathbf
+      x}\biggm|_k\right)}_{\mathbf K(\mathbf x_k)}
+\,\underbrace{\vphantom{- \left(\frac{\partial \mathbf{f}}{\partial \mathbf
+      x}\biggm|_k\right)}d\mathbf x}_{d\mathbf x_k}
+  = \underbrace{\vphantom{- \left(\frac{\partial \mathbf{f}}{\partial \mathbf
+      x}\biggm|_k\right)}\mathbf f(\mathbf x_k)}_{\mathbf f_k}
+\end{equation}
+
+We refer to the matrix $\mathbf K$ as the \textit{stiffness
+  matrix}. In order to arrive at a solved equilibrium configuration, for
+each iteration $k$ our task becomes the following steps:
+
+\begin{enumerate}
+  \item Update the stiffness matrix $\mathbf K$ for the current
+    configuration $\mathbf x_k$.
+  \item Compute forces $\mathbf f_k$ corresponding to $\mathbf x_k$
+    for our right hand side of the update expression. \textit{Check to
+      see if we can terminate.}
+  \item Solve $\mathbf K$ for a displacement update $d\mathbf x$.
+  \item Update our current state $\mathbf x_{k+1} = \mathbf x_k +
+    d\mathbf x$
+  \end{enumerate}
+
+  At the end of this chapter, we'll look at the emergent challenges
+  from this design, but for now it is important to note that the
+  solution to the stiffness matrix inverse is the major computational
+  expense during this process. To see why, we should take a brief look
+  at its construction. At a high level, the stiffness matrix is a
+  relationship between forces and displacements, i.e. how much force
+  is generated due to an infinitesimal displacement of any node of our
+  lattice. When reasoning about this idea, remember that the
+  simulation lattice is composed of hexahedral elements - every
+  interior node is connected to 27 neighboring nodes. These are the
+  neighbors which form the one-ring of adjacent cells. Moreover, in
+  three dimensions each relationship to a neighbor takes the form of a
+  $3 \times 3$ matrix, relating the force vector of the node to the
+  displacement vector of each neighbor. For a hypothetical problem of
+  a $128^3$ domain, this means our total non-zero element count in our
+  matrix is approximately 500 million entries, or just under two
+  gigabytes of storage space if using a floating point
+  representation\footnote{This is not including any additional storage
+    cost overheads for representing the sparse matrix itself. This
+    number is simply the space required to store only the non-zero
+    coefficients alone.}. Practically, this means that the solution to
+  this matrix is non-trivial, at least if we want to accomplish it
+  quickly.
+
+  \section{User Interaction}
+
+  Until this point, the discussion of materials and mechanical
+  responses have been avoiding the last component of the initial
+  problem statement: unscripted user interactions. This is a complex
+  topic and it is best to approach it after having a basic
+  understanding of how simulated materials are solved in general. In
+  the real world, we interact with objects intuitively - we push and
+  pull things, glue them in place, or join them via connectors. For
+  simulated objects, we can perform many of the same conceptual tasks
+  by mapping their high level descriptions into the fundamental forces
+  behind them. By doing so, we introduce a new wrinkle into
+  our previous equations: external forces and constraints.
+
+  Let us briefly look at a high level overview of the various types of
+  user interactions and constraints we will want for our problem. For
+  plastic surgery, we commonly are performing a limited set of
+  conceptual actions: Pulling on tissue, clamping it down, suturing
+  it together, or cutting it. We'll talk about the last action later,
+  as it's a bit more complicated. The first three actions are fairly
+  straightforward however.
+
+  \textbf{Position constraints} Arguably the easiest constraint type,
+  positional constraints can be thought of as holding a part of an
+  object fixed in space with infinitely strong glue. Mathematically
+  speaking, these constraints are referred to as \textit{Dirichlet}, or
+  boundary conditions which must be met at all times during the
+  simulation. Numerically, Dirichlet conditions are applied by
+  disallowing any displacement to occur on such constrained nodes. For
+  virtual surgery, these constraints could serve to pin the edges of
+  tissue down, or act as a transition between the simulated and
+  non-simulated regions, preventing separation. 
+
+  \textbf{Force constraints} The second form of constraint are force
+  constraints. These constraints are direct applications of force
+  targeted at particular points of the simulated object. In terms of
+  the equations we've looked at before, force constraints modify both
+  the stiffness matrix $K$ and the right-hand side $\mathbf f$ in
+  Equation \ref{equ:newtonstep}. In this document, we will be treating
+  these types of constraints as zero-rest length springs, which obey
+  the simple one dimensional form of Hooke's law:
+  \begin{equation}
+    \label{equ:hookeslaw}
+    F = -k\lVert x_a - x_b\rVert_2
+  \end{equation}
+  In this linear relationship, the restorative forces (forces acting
+  in a direction to return the spring to its resting length) $F$ are proportional to the
+  amount the spring has been stretched, represented by the distance
+  between its two end points $x_a$ and $x_b$, all of which is
+  modulated by a spring constant $k$.
+
+  While this relationship is simple on the surface, there does exist a
+  small complication: Where are its endpoints? Remember, the only
+  entities in our problem that hold forces are the nodes of the
+  simulation lattice. While we could enforce the restriction that
+  spring endpoints always coincide with these nodes, it would be more
+  useful to be able to place these force constraints arbitrarily. To
+  do so, we must embed the end points into the lattice. This is
+  similar to how we embed the vertices of our material mesh into the
+  lattice - interpolating nodal displacements. However, in this case,
+  we also must perform the opposite action once we have computed a
+  force - distributing this force back onto the nodes of the cell
+  where the spring was attached.
+
+  With this minor alteration, we can now represent two types of force
+  constraints: Single sided and dual sided. Single sided constraints
+  refer to spring constraints which have one end point embedded in the
+  simulation lattice, while the second is positioned manually in
+  space, acting as a Dirichlet constraint. This allows a user to pull
+  regions of the simulated object towards positions in space. By
+  embedded both end points, we can build dual sided constraints. As
+  expected, these constraints act to pull two disparate regions of
+  material closer together. In the context of virtual surgery, this
+  could be used to represent a suture or other similar mechanical linkage.
+  
+  \subsection{Topology Change}
+
+  The last major form of user interaction with the simulated tissue
+  object is via topology change, i.e. cutting. Apart from physically
+  moving tissue around or joining it with sutures, this interaction
+  represents the surgeon's ability to incise tissue with a scalpel or
+  other cutting implement. As such, supporting topology change is very
+  important as otherwise most procedures would be impossible to
+  perform.
+
+  As such, it is worth considering the ways that topology change in
+  simulated objects can be done. Initially, it might be tempting to
+  say that topology change needs to mimic the actual physics of a
+  scalpel cutting tissue. In other words, track the physical forces at
+  the tip of the blade, the strain limit of the tissue, and causing
+  the material of the simulated object to separate as the blade
+  traverses the surface. This approach is appealing due to the
+  naturalness of the effect - as the blade moves, tissue is cleanly
+  cut and slides away from it on either side, just as one might expect
+  in a real life procedure.
+
+  Unfortunately, this form of \textit{online} cutting, where the
+  topology change and deformation solution are fully coupled, is very
+  complicated. It requires careful maintenance of multiple data
+  structures and the stiffness matrix, all while ensuring the problem
+  remains robust and avoids spurious forces. It is also not, strictly
+  speaking, necessary. If we were approaching the problem from a
+  psychomotor perspective, where we were interested in training the
+  user on how it would feel to cut tissue, this type of cutting would
+  be required to correctly inform haptic feedback devices. However, as
+  stated in the previous chapter, we are mostly interested in the
+  cognitive aspects of plastic surgery. Under this regime, online
+  cutting is less important than providing users a clear interface in
+  which to plan and enact cuts with precision. Further, while it is
+  true that more advanced procedures require cutting tissue which has
+  been pulled back and exposed, there do exist an important class of
+  so-called local flap procedures which can be cut all at once. These
+  procedures are important, as they are serve as core building blocks
+  for more complex procedures, often being composed together in
+  non-trivial ways. It will be this class of procedures we will be
+  focusing on for supporting topology change.
+
+  Instead of supporting online cutting, we instead will design our
+  platform to handle cuts performed at discrete time epochs. In fact,
+  we will provide an additional simplification constraint: All cuts
+  will occur to the material's reference configuration, before any
+  deformation occurs. While this restriction prevents us from
+  attempting the more complex surgical procedures, like a cleft lip
+  repair or operations on highly volumetric regions like the human
+  breast, it easily supports local flap style operations. Yet, even
+  this highly restricted form of topology change has important
+  challenges to overcome. The first challenge is what to we mean by
+  topology change in the context of a simulation lattice? If we had
+  replaced our lattice with a simulation mesh, perhaps a conforming
+  tetrahedral mesh, topological change could have meant disconnecting
+  tetrahedra from each other, or even re-meshing the object to conform
+  to the cut. However, a lattice typically doesn't have that kind of
+  flexibility, as its topology is implicit for performance reasons. The
+  best approximation to the tetrahedral case would be to simply remove
+  entire cells, leading to extremely coarse, axis-aligned cuts. In
+  Chapter \ref{chp:nonmanifold}, we'll show how these problems can be
+  overcome with the introduction of a non-manifold topology design.
+
+  \subsection{Collision}
+
+  A final topic related to user interaction, and to some degree
+  topology change, is collision. Collision refers to the ability of
+  the simulated object to correctly respond to impact with another
+  object or itself. Collision is a particularly tricky property to
+  support in elastic simulation, especially self collision. Collision
+  can be broken into two distinct steps: collision detection and
+  collision response, or handling. Collision detection is the aptly
+  named process of determining whether or not collision has occurred at
+  any particular point in time. For volumetric objects, which possess
+  distinct inside and outside regions, collision detection typically
+  takes the form of testing for surface penetration. The challenge is
+  how to perform this test efficiently, since it needs to run at least
+  once per time step. For rigid body collisions, i.e. collisions between
+  the soft body and an external rigid object, level sets have been
+  employed quite successfully for collision detection purposes with
+  complexities in the order $O(1)$ for any point of
+  interest. Self collision scenarios work similarly, but with an
+  additional complication that both surfaces involved are potentially
+  deforming. This topic will be covered in more detail in Chapter
+  \ref{chp:nonmanifold}, where a full collision processing algorithm
+  with level sets will be described.
+  
+  \section{Engineering A Solid Foundation}
+
+  The following chapters will discuss in more detail some of the
+  important engineering challenges and present techniques to overcome
+  them. The primary goal is to demonstrate a set of related approaches
+  that work well with each other and be used to construct a highly
+  performant, yet flexible foundation for a plastic surgery
+  \gls{pvis}. After a short related work section, highlighting some
+  informative prior work, there will be several technical chapters
+  dealing with the topics below. Finally, there will be a brief
+  discussion section which will touch briefly on remaining
+  philosophical issues and technical conclusions.
+
+  \begin{enumerate}
+    \item \textbf{Thin Feature Support}~ Due to the nature of the
+      application, ensuring our simulated tissue can support thin
+      geometric features, arising from incising tissue or simply the
+      original tissue itself, is critical. What do we mean by support?
+      In particular, our simulations need to be able to represent this
+      geometry correctly within an embedded lattice deformer without
+      compromising performance and accommodating behaviors like self
+      collision. The current danger we face is that by embedding
+      geometry in a lattice, instead of making our simulation elements
+      conforming, we will not only loose accuracy around the boundary
+      but potentially create unrealistic behavior by incorrectly connecting
+      material across gaps unresolved by the lattice. In Chapters
+      \ref{chp:nonmanifold} and \ref{chp:parallelization}, we'll look at
+      solutions to these concerns via a process of non-manifold embedding.
+
+    \item \textbf{Optimized Lattice Deformers}~ We defined a
+      \gls{pvis} to be an interactive system, and in order to use
+      elastic simulation as a supporting technology we must ensure it
+      can maintain sufficient levels of interactivity. Thus simulation
+      performance is a key engineering challenge for us. Several times in this
+      chapter we have mentioned that embedding lattice deformers were
+      picked as the discretization model of choice over competing
+      solutions, such as conforming mesh designs due to their
+      performance opportunities. These opportunities stem from their
+      implicit data structures and regularity. These qualities reduce
+      the amount of information than needs to read simply to access
+      the stored information and allow for simplified computational
+      designs.  However, these advantages do not come free. In
+      Chapters \ref{chp:parallelization} and \ref{chp:macroblocks}, we'll show
+      how these properties can be exploited to create hardware aware
+      algorithms for the solutions to partial differential
+      equations for elasticity. 
+      
+    \item \textbf{Support for Non-linearity}~ While linear elastic
+      materials are popular and easy to simulate, they fall short of
+      the complexities observed in real biological material. While
+      this document doesn't make any claim at delivering such
+      materials, which require significant testing and validation
+      against real tissue properties, we do wish to support these
+      materials effectively. Moreover, even with relatively simple
+      material models, adding additional constraints (either from
+      user interactions or from contact) can make the problem
+      non-linear. In Chapter \ref{chp:macroblocks}, we demonstrate a
+      powerful generic technique for solving these non-linear
+      problems, allowing for rapid convergence onto a correct
+      solution.
+      
+    \item \textbf{Deployment}~ While often overlooked, it is equally
+      important to deliver a finished simulation to a user as it is to
+      perform the simulation quickly and correctly. In Chapter
+      \ref{chp:deployment}, we'll explore solutions for presenting
+      simulated surgery operations to a multi-user environment. In
+      particular, we'll look at issues such as available operating
+      environments, suitability of cloud services, and maintainability.
+    
+  \end{enumerate}
+
+  
+  
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../document"
+%%% End:

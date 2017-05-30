@@ -1,0 +1,55 @@
+%% Creator: Inkscape inkscape 0.48.0, www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'Anisotropic_Constraints_Fig.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+
+\begingroup
+  \makeatletter
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}
+    \renewcommand\color[2][]{}%
+  }
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}
+    \renewcommand\transparent[1]{}%
+  }
+  \providecommand\rotatebox[2]{#2}
+  \ifx\svgwidth\undefined
+    \setlength{\unitlength}{318.2pt}
+  \else
+    \setlength{\unitlength}{\svgwidth}
+  \fi
+  \global\let\svgwidth\undefined
+  \makeatother
+  \begin{picture}(1,0.36950031)%
+    \put(0,0){\includegraphics[width=\unitlength]{Anisotropic_Constraints_Fig.pdf}}%
+    \put(0.16265601,0.18334013){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{\Large{$w$}}}}%
+    \put(0.08606446,0.07289746){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{\Huge{$m$}}}}%
+    \put(0.41696203,0.2903147){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{\large{B1}}}}%
+    \put(0.41696203,0.13718098){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{\large{B2}}}}%
+    \put(0.69501227,0.23132505){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{\large{C1}}}}%
+    \put(0.69501227,0.09948788){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{\large{C2}}}}%
+    \put(0.08050721,0.24660754){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{\large{A}}}}%
+  \end{picture}%
+\endgroup

@@ -77,4 +77,25 @@
         reference configuration serves as a name space for labeling material points
         also used as shape, if material is placed in, which exhbits no mechanical response
 
-   
+** Revison notes (May 2 2017)
+
+  Remaining chapters:
+    Macroblocks
+    Parallelization
+    NonManifold Embedding
+    Deployment   
+
+** Revision Notes (May 26 2017)
+
+  * Findings
+    Incompressible vs. Inextensible
+    What applies surgery benchmark
+    What applies to general purpose elasticity
+    NonManifold Levelsets for untangling
+
+    Motivation
+
+    Start with a question
+    Tool specificiation
+    Broader Context
+    Challenges
