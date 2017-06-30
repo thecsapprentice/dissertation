@@ -99,3 +99,156 @@
     Tool specificiation
     Broader Context
     Challenges
+
+** Revision Notes (June 2 2017)
+
+
+   Why do we need requirement gathering
+     pick our battles
+     triage
+     identify the pertinate problems
+     problems with synergy
+     
+
+** Revision Notes (June 6 2017)
+
+   Don't undercut argument by making "reality" an impossible standard
+   Take the oppertunity to target what we can "cognitive training"
+   
+   Geometry begits function, also asthetics
+   Mechanics
+    
+   Clarify subject at end of geometry sub-section 
+
+   Reactivity
+     Cause and effect - practitioner and system
+     What is the input and output of the system
+     What is the role of time here?
+
+** Revision Notes (June 8 2017)
+
+   Avoid paragraphs starting with no information !!
+
+   End of the question section
+      look more narrowly at the specific subset of medical simulation
+      reflected in our choosen benchmark (craniofacial surgery).
+
+   Simple user input/output schemes can still be used to do a lot of
+   interesting things.
+
+   Dynamics 
+ 
+   wall clock time vs. simulation time: different
+ 
+   real world has temporal element
+     sequencing
+     timing
+     lag effects
+     
+   how much of this do we keep, how much do we abstract, how much do
+   we simplify
+
+   why?
+
+   costs
+     availability of models that describe energy disapation are
+     complex
+     don't know the right answer
+     right answer is expensive
+
+   not needed
+     perfect resolution is not essential 
+   
+
+   Utility
+     Focus on existing use cases
+     talk about deployment restraints
+
+   
+** Revision Notes (June 9 2017)
+
+   Emphases time in dynamics section
+
+** Revision Notes (June 12 2017)
+
+   move size and scope from direct comparision with artificaliaty
+
+   Change visual detail
+
+     traditionally shape, also composition maybe function
+
+   Reactivity
+     explaination of why this complicates things
+     boundary conditions complicate life - why?
+        natural intuituons are not always easy to accomidate
+        natural intuitions can often create difficult to fullfil
+          demands and specfications
+   
+   Interactivity
+
+     Maybe talk about network lag, simulation lag, compare with
+     multiplayer game.
+
+** Revision Notes (June 14 2017 )
+
+   Engineering Section
+ 
+   Emhpasis on the procedural methods, be more clear we are talking
+   about procedural animations.
+
+   Theory is a bad word.
+
+   Refactor second goal paragraph as an intro into continuoum instead
+   of elements.
+
+   Skip the plasticity stuff - distractions, skip it.
+
+** Revision Notes ( June 15 2017)
+
+   Add discussion about why solving the matrix K is hard
+
+   Describe the process of constructing discrete formulas (paraphrase
+   Alg 6.1)
+
+   Derive the Newton update via a taylor expansion
+
+   Talk about quasistatics after newton process, describe why solving
+   for forces=0 is useful, how we get animations from this process
+
+** Revision Notes ( June 23 2017)
+
+   Bold face all matricies
+
+   Clarify expressions for post-quadrature cell energy
+
+   "Hence we employ a methodogly to avoid building the matrix
+   explicitly...."
+
+   Add "Using the chain rule + circled equations, we can derive this
+   expression for H(x)   
+   
+   Why are constraints hard for regularity: Concentrated near
+   surfaces, dynamic, steps to mitigate in chapter ???
+   
+   Image at topology changes: Preview of hybrid lattices... 
+
+
+ 
+** Revision Notes ( June 27 2017)
+   Use ; instead of : in expressions
+
+** Revision Notes (June 28 2017)
+   General computation
+
+   Arrays of structs of arrays
+   Talk about input -> output models
+
+   Illustration of kernel heirarchy
+   
+   Deployment chapter - talk about development history (what I wrote, what/who I pulled from )
+
+   Make sure captions are uniformly formatted (centering, vspace, etc...)
+
+   Cite technologies / standards
+
+   

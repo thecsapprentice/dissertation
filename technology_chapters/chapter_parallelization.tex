@@ -3,40 +3,41 @@
 
 In this chapter, we will explore techniques for optimizing the force
 computation procedures for lattice deformers. Recall from Chapter
-\ref{chp:engineering}, that our goal for solving elastic deformations,
-whether it be a static deformation or a dynamics solution, is to
-compute forces from current nodal positions. We can codify this
-process in Algorithm \ref{alg:isotropicforces}, where we detail the
-computational steps required for converting nodal positions into the
-corresponding nodal forces according to a material specific energy
-function. The important take away from this algorithm is that we are
-able to compute these forces on a per cell basis. On the surface, this
-would seem to be an excellent oppertunity for thread-based
-parallelism: divide all the cells amoung available processor cores and
-have each core operate on its cells in isolation. Unfortunately, this
-is where we run into problems.
+\ref{chp:engineering}, that our goal in solving elastic deformations
+is to compute forces and force differentials from current nodal
+positions. We codified this process in Algorithm
+\ref{alg:isotropicforces}, where we detailed the computational steps
+required for converting nodal positions into the corresponding nodal
+forces according to a material specific energy function. The important
+take away from this algorithm is that we are able to compute these
+forces on a per cell basis. On the surface, this would seem to be an
+excellent opportunity for thread-based parallelism: divide all the
+cells among available processor cores and have each core operate on
+its cells in isolation. Unfortunately, this is where we run into
+problems.
 
-The first problem to note is that while all cells are functionally
+The first problem is that while all cells are functionally
 independent, the nodes themselves are not. When we compute forces on
-nodes, we are actually producing aggreate forces. That is, for any
+nodes, we are actually producing aggregate forces. That is, for any
 node in the lattice, we are interested in sum of all forces from all
-cells it belongs to. By using thread based parallelism, this
-presents a problem. In the context of a single thread, the processing
-of cells is serial. But when two or more threads, each operating on
-different cells, try to accumulate to a single node we encounter a serious
-write hazard. In this case, the hazard is that we don't have any
-guarentees that our final result will be the sum of all forces from
-all involved cells. Due to the behaviors of the processor caches and
-system memory, we might have a result equal to any one single cell's
-result or any combination of cells combined. We could attempt to
-remove this confusion by adding a locking protocol around each node,
-but this would introduce signifigant performance penalties.
+cells it is connected with. By using thread-based parallelism, we
+encounter a significant problem.  In the context of a single thread,
+the processing of cells is serial. But when two or more threads, each
+operating on different cells, try to accumulate to a single node we
+encounter a serious \textit{write hazard}. In this case, the hazard is
+that we don't have any guarantees that our final result will be the
+sum of all forces from all involved cells. Due to the behaviors of the
+processor caches and system memory, we might have a result equal to
+any one single cell's result, any combination of the cells combined,
+or some unrelated value. We could attempt to remove this confusion by
+adding a locking protocol around each node, but this would introduce
+significant performance penalties.
 
-The second problem we encounter is that of reading and writing nodal
+The second problem we encounter is when reading and writing nodal
 information. In Chapter \ref{chp:nonmanifold}, we demonstrated how
-nonmanifold embedding meshes could be constructed to represent
-material geometry with thin features or incisons. However, this
-approach comes with a significant drawback: The explict topology
+non-manifold embedding meshes could be constructed to represent
+material geometry with thin features or incisions. However, this
+approach comes with a significant drawback: The explicit topology
 required to define the mesh removes much of the regularity we could
 otherwise depend on for performance. One nice benefit of using an
 implicit topology for our lattices is that the memory locations of all
@@ -44,21 +45,21 @@ cells and nodes can be quickly computed via a function of their
 geometric positions. This allows reading and writing to these
 locations to be done via a single memory access: the exact storage
 location. In contrast, the explicit topology we constructed
-previously has no such guarenteed relationship between storage
+previously has no such guaranteed relationship between storage
 locations and geometric positions. Instead it uses an explicit record
 of pointers for each cell that informs us where the memory is
 stored. This can hurt performance in two ways: first, there is no
-guarentee that memory is well ordered. Neighboring geometric nodes
+guarantee that memory is well ordered. Neighboring geometric nodes
 might be arbitrarily far apart in memory. Since modern processors load memory in
 linear strips, known as cache lines, this distance might require
-multiple loads, where a single load might have sufficied if they were
+multiple loads, where a single load might have sufficed if they were
 closer. Second, by using a collection of pointers per cell, we are
 actually reading twice for every entry. The first read is to load the
 value of the pointer, followed by the data itself. Combined, these
 memory access issues can be extremely detrimental to performance,
-espeically since modern processors operate in a reigme of roughly two
+especially since modern processors operate in a regime of roughly two
 orders of magnitude more available computational resources than memory
-access rate. Despite the signifigant number of numerical steps
+access rate. Despite the significant number of numerical steps
 required to process each cell, any delays in memory access could lead
 to the computation becoming memory bound.
 
@@ -67,80 +68,6 @@ for computation. Our proposed solution makes use of two concepts:
 hybrid grids and blocking. Along the way, we will also show how C++
 templates can be employed for guiding SIMD vectorization of
 blocks. The following sections will cover these concepts in more detail.
-
-\afterpage{
-\begin{algorithm}[p]
-  \begin{minipage}{.5\textwidth}
-    %\begin{subalgorithm}{\textwidth}
-      \setlength{\baselineskip}{1.35em}
-      \begin{algorithmic}[1]
-        \Procedure{FElastic}{$\bm{x}$, params $p$}\hspace{.1cm} \tikzmark{right}
-        \State \Reshape \chighlight{$\bm{x} \rightarrow \bm{D}_s$}
-        \State \Compute \chighlight{$\bm{F} \leftarrow
-          \bm{D}_s\bm{G}^T$}
-        \State \Compute \chighlight{$[U,\Sigma,V] \leftarrow
-          \Call{SVD}{\bm{F}}$}\tikzmark{top}
-        \State \Compute $\hat{\bm{P}} \leftarrow
-        \Call{P\_hat}{\Sigma, p}$
-        \State \Compute $\bm{P} \leftarrow
-        \bm{U\hat{P}V}^T$\tikzmark{bottom}
-        \State \Set $\bm{H} \leftarrow
-        V_0\bm{PG}$
-        \State \Reshape $\bm{H} \rightarrow \bm{f}$
-        \EndProcedure
-      \end{algorithmic}
-      \AddNote{top}{bottom}{right}{$\bm{P(F)}$}    
-    %\end{subalgorithm}
-  \end{minipage}
-
-  \begin{minipage}{.5\textwidth}
-    %\begin{subalgorithm}{\textwidth}
-      \setlength{\baselineskip}{1.35em}
-      \begin{algorithmic}[1]
-        \Procedure{$\delta$FElastic}{$\bm{x}$,$\bm{\delta{}x}$, params $p$} 
-        \State \Reshape \chighlight{$\bm{x} \rightarrow
-          \bm{D}_s$}, $\bm{\delta{}x} \rightarrow \bm{\delta{}D}_s$
-        \State \Compute \chighlight{$\bm{F} \leftarrow
-          \bm{D}_s\bm{G}^T$}, $\bm{\delta{}F} \leftarrow
-        \bm{\delta{}D}_s\bm{G}^T$\tikzmark{right}
-        \State \Compute \chighlight{$[U,\Sigma,V] \leftarrow
-          \Call{SVD}{\bm{F}}$}\tikzmark{top}
-        \State \Compute \chighlight{$\mathcal{T} \leftarrow
-          \Call{dPdF\_hat}{\Sigma, p}$}
-        \State \Compute $\hat{\delta{}\bm{F}} \leftarrow
-        \bm{U}^T\delta{}\bm{F}V$
-        \State \Compute $\hat{\delta{}\bm{P}}
-        \leftarrow \mathcal{T} :
-        \hat{\delta{}\bm{F}}$
-        \State \Compute $\delta\bm{P} \leftarrow
-        \bm{U\hat{\delta{}P}V}^T$\tikzmark{bottom}
-        \State \Set $\bm{\delta{}H} \leftarrow
-        V_0\bm{\delta{}PG}$
-        \State \Reshape $\bm{\delta{}H} \rightarrow \bm{\delta{}f}\vspace*{-.1in}$
-        \EndProcedure
-      \end{algorithmic}
-      \AddNote{top}{bottom}{right}{$\bm{\delta{}P(F,\delta{}F)}$}
-    %\end{subalgorithm}
-      \vspace*{-.1in}
-  \end{minipage}
-  \caption{Algorithm for computing elastic force and force
-    differentials}{Sections highlighted in gray indicate values which
-    can be precomputed at the start of each Newton-Raphson
-    iteration. The functions \texttt{P\_Hat} and \texttt{dPdF\_Hat}
-    can be user-defined to implement arbitrary \emph{isotropic}
-    materials. The \textbf{reshape} operation concatenates eight nodal
-    vectors in a cell (positions, displacements, forces, etc) into a
-    $3\times 8$ matrix and vice versa. $\bm{G}$ is a $3\times 8$
-    gradient matrix, as defined in
-    \protect\cite{McAdaZSETTS:2011}. $V_0=h^3$ is the volume of the
-    cartesian cell. $\mathcal{T}$ is a sparse 4th order tensor as
-    defined in \protect\cite{TeranSIF:2005} }
-  \label{alg:isotropicforces}
-\end{algorithm}
-\clearpage
-}
-
-
 
 \section{A hybrid embedding lattice structure}
 \label{sec:hybrid}
@@ -165,63 +92,63 @@ hybridizing this grid with an (explicit topology) hexahedral mesh used
 to describe regions in the vicinity of narrow slits and incisions.
 
 
-\begin{figure}
-\centering
-\subfloat{
-\includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Single_zPlasty_1/embedded/render0057.png}
-\hfill
-\includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Rhomboid_Scalp_1/embedded/render0010.png}
-}
+% \begin{figure}
+% \centering
+% \subfloat{
+% \includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Single_zPlasty_1/embedded/render0057.png}
+% \hfill
+% \includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Rhomboid_Scalp_1/embedded/render0010.png}
+% }
 
-\subfloat{
-\includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Single_zPlasty_1/embedded/render0071.png}
-\hfill
-\includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Rhomboid_Scalp_1/embedded/render0022.png}
-}
+% \subfloat{
+% \includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Single_zPlasty_1/embedded/render0071.png}
+% \hfill
+% \includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Rhomboid_Scalp_1/embedded/render0022.png}
+% }
 
-\subfloat{
-\includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Single_zPlasty_1/embedded/render0093.png}
-\hfill
-\includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Rhomboid_Scalp_1/embedded/render0046.png}
-}
+% \subfloat{
+% \includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Single_zPlasty_1/embedded/render0093.png}
+% \hfill
+% \includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Rhomboid_Scalp_1/embedded/render0046.png}
+% }
 
-\subfloat{
-\includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Single_zPlasty_1/lattice/render0071.png}
-\hfill
-\includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Rhomboid_Scalp_1/lattice/render0022.png}
-}
+% \subfloat{
+% \includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Single_zPlasty_1/lattice/render0071.png}
+% \hfill
+% \includegraphics[height=.2\paperheight]{chapter_gridiron/example_images/Rhomboid_Scalp_1/lattice/render0022.png}
+% }
 
-\vspace*{-.08in}
-\caption{Simulation of Z-Plasty and Rhomboid flap repairs}{Left:
-  Simulation of \textbf{Z-Plasty}, a basic maneuver resulting in
-  anisotropic scaling along two perpendicular directions. Z-Plasty is
-  a common building block leveraged in more elaborate repairs. Right:
-  \textbf{Rhomboid flap} procedure for closing a quadrilateral
-  aperture of excised tissue on the scalp. The embedded simulation
-  grids are shown on the right.}
-\label{fig:Zplasty-RhomboidScalp}
-\vspace*{-.16in}
-\end{figure}
+% \vspace*{-.08in}
+% \caption{Simulation of Z-Plasty and Rhomboid flap repairs}{Left:
+%   Simulation of \textbf{Z-Plasty}, a basic maneuver resulting in
+%   anisotropic scaling along two perpendicular directions. Z-Plasty is
+%   a common building block leveraged in more elaborate repairs. Right:
+%   \textbf{Rhomboid flap} procedure for closing a quadrilateral
+%   aperture of excised tissue on the scalp. The embedded simulation
+%   grids are shown on the right.}
+% \label{fig:Zplasty-RhomboidScalp}
+% \vspace*{-.16in}
+% \end{figure}
 
 
-\begin{figure}
-\centering
-\subfloat{
- \includegraphics[width=.35\paperwidth]{chapter_gridiron/example_images/Dual_sPlasty_Scalp_1/embedded/render0023.png}
-\hfill
-\includegraphics[width=.35\paperwidth]{chapter_gridiron/example_images/Dual_sPlasty_Scalp_1/embedded/render0066.png}
-}
+% \begin{figure}
+% \centering
+% \subfloat{
+%  \includegraphics[width=.35\paperwidth]{chapter_gridiron/example_images/Dual_sPlasty_Scalp_1/embedded/render0023.png}
+% \hfill
+% \includegraphics[width=.35\paperwidth]{chapter_gridiron/example_images/Dual_sPlasty_Scalp_1/embedded/render0066.png}
+% }
 
-\subfloat{
-\includegraphics[width=.35\paperwidth]{chapter_gridiron/example_images/Dual_sPlasty_Scalp_1/embedded/render0115.png}
-\hfill
-\includegraphics[width=.35\paperwidth]{chapter_gridiron/example_images/Dual_sPlasty_Scalp_1/lattice/render0066.png}
-}
-\vspace*{-.1in}
-\caption{Simulation of a Dual S-Plasty repair on the scalp}{\textbf{Dual S-Plasty} procedure on the scalp; a large oval-shape defect is patched by transposing two S-shaped flaps.}
-\label{fig:SPlasty-Scalp}
-\vspace*{-.15in}
-\end{figure}
+% \subfloat{
+% \includegraphics[width=.35\paperwidth]{chapter_gridiron/example_images/Dual_sPlasty_Scalp_1/embedded/render0115.png}
+% \hfill
+% \includegraphics[width=.35\paperwidth]{chapter_gridiron/example_images/Dual_sPlasty_Scalp_1/lattice/render0066.png}
+% }
+% \vspace*{-.1in}
+% \caption{Simulation of a Dual S-Plasty repair on the scalp}{\textbf{Dual S-Plasty} procedure on the scalp; a large oval-shape defect is patched by transposing two S-shaped flaps.}
+% \label{fig:SPlasty-Scalp}
+% \vspace*{-.15in}
+% \end{figure}
 
 \subsection{Reduction and Remapping}
 
@@ -250,9 +177,7 @@ the sense of mapping the most elements into the grid. A more
 aggressive strategy would be to select one element from each set of
 geometrically co-located items and map it to the grid. We defer
 investigation of similar compaction heuristics to future work.
-\textbf{Note:} In these surgical examples (Figures
-\ref{fig:gridiron-teaser},\ref{fig:Zplasty-RhomboidScalp} and
-\ref{fig:SPlasty-Scalp}) mesh-mapped embedding cells are indicated
+\textbf{Note:} In these surgical examples (Figure \ref{fig:surgicalembeddings}) mesh-mapped embedding cells are indicated
 with blue color, grid-mapped ones in red. Typically, only a minority
 of cells is mesh-mapped, allowing us to retain the bulk of performance
 benefits of implicit grid-mapped embeddings.
@@ -267,14 +192,59 @@ benefits of implicit grid-mapped embeddings.
   \label{fig:remapping}
 \end{figure}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=.32\paperwidth]{chapter_gridiron/example_images/Dual_sPlasty_Scalp_1/lattice/render0066.png}
+  \includegraphics[width=.32\paperwidth]{chapter_gridiron/example_images/Single_zPlasty_1/lattice/render0071.png}
+  \includegraphics[width=.32\paperwidth]{chapter_gridiron/example_images/Rhomboid_Scalp_1/lattice/render0022.png}
+  \caption{Embedding discretizations of surgical operations}{Three
+    different surgical operations, S-Plasty (Top Left), Z-Plasty (Top
+    Right), and a Rhomboid Flap (Bottom), are shown with their
+    embedding hybrid grids. Cells in red are part of the grid region, while
+    blue cells are mesh mapped. Green cells mark Dirichlet regions.}
+  \label{fig:surgicalembeddings}
+\end{figure}
+
 \section{Parallelization}
 
-Our framework relies on both multithreading and vectorization
-(SIMD) to obtain the best possible performance. The fact
-that our Cartesian-based discretization consists of identically shaped
-elements offers a great opportunity to leverage both thread-level and
+\begin{algorithm}
+  \caption{General Parallelization Design Strategy}
+  \label{alg:GeneralStrategy}
+  \begin{algorithmic}[1]
+
+    \For{ $t = 0 \ldots N$ }
+
+    \State $\{ o_1(t), o_2(t),\ldots, o_m(t) \} = \Call{Kernel}{\{ i_1(t), i_2(t),\ldots, i_n(t) \}}$
+    
+    \EndFor
+    
+  \end{algorithmic}
+  
+\end{algorithm}
+
+
+Our framework relies on both multithreading and vectorization (SIMD)
+to obtain the best possible performance. The fact that our
+Cartesian-based discretization consists of identically shaped elements
+offers a great opportunity to leverage both thread-level and
 data-level parallelism, due to the inherent regularity of the
-simulation kernels.
+simulation kernels. Our general strategy is to design operations that
+resemble the form shown in Algorithm \ref{alg:GeneralStrategy}. Under
+this approach, our numerical kernels for computing nodal values
+operate on multiple streams of input data,
+$\{ i_1, i_2,\ldots, i_n \}$, and produce multiple streams of output
+data, $\{ o_1, o_2,\ldots, o_m \}$. Collections of streams can be
+grouped together logically into vectors or matricies. By structuring
+the computation in this form, we can clearly see where multithreading
+and vectorization apply: Each thread will be assigned a partition over
+$N$, while vectorization can be used to execute multiple instances of
+\textsc{Kernel} by stepping through the partition in strides. This
+also suggests a data structure design: Arrays of Structs of Arrays
+(AoSoA), where each struct contains the data for each computational
+stride and the array of structs can be divided evenly between
+threads. In the next couple of sections, we will look at how the
+simulation data, currently arranged in a hybrid grid, can be
+repackaged according to the AoSoA methodology, a process called blocking. 
 
 \begin{algorithm}
 \caption{SIMD Compatible Block Construction}
@@ -304,8 +274,8 @@ simulation kernels.
 
 \subsection{Blocking}
 
-As described in Section \ref{sec:engineering:solving} on
-discretization, forces are computed on a per cell basis. A naive
+As described in Section \ref{sec:engineering:discreteformulas} and Algorithm
+\ref{alg:isotropicforces}, forces are computed on a per cell basis. A naive
 multithreaded port would result in write hazards at nodal positions,
 unless expensive synchronization was used. Simple partitioning would
 eliminate this issue, but would not make efficient use of
@@ -472,8 +442,7 @@ ineffective in providing automatically (especially for
 large kernels, as the ones in our solver, which might contain
 thousands of machine instructions for processing forces on a
 single cell). An example is the highly optimized SVD routines,
-published with the work of McAdams et al.\!
-\shortcite{McAdaZSETTS:2011} which replicates almost
+published with the work of \citet{McAdaZSETTS:2011} which replicates almost
 instruction-by-instruction identical SIMD intrinsics to implement
 scalar, SSE and AVX versions; it can be easily verified that
 compiler auto-vectorization cannot provide competitive performance

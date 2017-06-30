@@ -1,63 +1,41 @@
 \chapter{Practical Deployment for Interactive Simulations}
 \label{chp:deployment}
 
-The last engineering task we need to examine is that of
-deployment. Deployment is a broad topic which we will use here to
-describe available methods to bring our \gls{pvis} to the general
-public. While deployment is often overlooked in academic research, or
-treated as an afterthought, it is actually an critical phase of a
-system. Ultimately, a system is useless unless it is available for
-people to use. While this might seem like a tautology, too often
-researchers and engineers will spend time and effort designing a
-technique, which in their opinion solves many valuable problems, but
-never spend any time in making it available to others. It can be
-argued that without that final step, their solutions are functionally
-useless irrespective of any other characteristics.  To that end, this
-chapter will be focused on this very practical question: How can a
-\gls{pvis} for plastic surgery simulation, designed with ( or without
-) the techniques demonstrated in previous chapters, be released to the
-public in a satisfying manner? In answering this question, we'll look
-at three different design approaches for visual clients, along with a
-more in depth examination of the questions that often arose when
-considering deploying a plastic surgery simulation system.
+This final technical chapter focuses on the issues surrounding
+the deployment of Simulation Assisted Visual Systems (SAVS). The
+organization of this chapter is divided into two main parts. First, a
+short review of the higher level concerns regarding deployment, both
+from human and technology viewpoints. Second, the developmental
+history of our benchmark surgical application will be described,
+highlighting the choices, and their rationals, made along the way.
 
 \subsection{Deployment Issues}
 
 When considering the task of deploying a virtual surgery simulation,
-the primary questions to answer can be broken down into two
-categories: social and technical. This, of course, is a
-simplification. In reality, all of the ideas that will be presented in
-this section are interrelated with one another. To maintain some
-degree of organization, however, we'll be looking at these topics one
-at a time.
+we will break the primary concerns into two, rather simplified,
+categories for the sake of discussion: social and technical.
 
 \paragraph{Social Concerns}~ The primary social concerns of deployment
 relate to who will be using the system and why. At first glance, the
 who seems obvious: medical professionals. But many other groups might be interested
 in such a system. Medical students and patients come to mind as
-potential other users, for learning and pre-visualization tasks. In
-fact, the techniques developed and presented in this document are
-focused on these tasks, by providing a interactive environment to
-experiment with tissue mechanics. Supporting experienced surgeons
-might require even more advanced simulations, capable of not just
-simulating tissue response to immediate interactions, but also of
-long term (days and weeks) healing predictions and planning via
-procedure optimization. These advanced topics are beyond the scope of
-this document and as such our deployment discussion will be focusing
-more on the task of visualizing known procedures for personal or group
-instruction.
+potential other users, for learning and pre-visualization
+tasks. Beyond the obvious users, we must also consider the people
+responsible for maintaining the system on a day-to-day basis. System
+administrators need to feel comfortable with the platform in order to
+gain their support.
 
-However, even with this more refined task, there are interesting open
-questions. For instance, do we assume that all users will be students
-in first class medical schools, all equipped with personal
-state-of-the-art workstations with which to run high quality
-simulations? Or would our system be used by smaller schools in
-developing countries, where getting expert instruction and learning
-materials virtually might be very attractive? In reality, the
-situation is probably somewhere on the spectrum between these
-two. Availability of local computational resources, expert
-instructors, and the number of students will all vary. As such, our
-deployment efforts should be aware of these potential use cases.
+In terms of use cases, there are also many potential variations. For
+instance, do we assume that all users will be students in first class
+medical schools, all equipped with personal state-of-the-art
+workstations with which to run high quality simulations? Or would our
+system be used by smaller schools in developing countries, where
+getting expert instruction and learning materials virtually might be
+very attractive? In reality, the situation is probably somewhere on
+the spectrum between these two. Availability of local computational
+resources, expert instructors, and the number of students will all
+vary. As such, our deployment efforts should be aware of these
+potential use cases.
 
 A final social issue to be aware of is privacy. Modern medical
 practices work with intensely private data belonging to patients on a
@@ -72,7 +50,7 @@ actual patient data, we should keep HIPAA (and similar statutes) in mind.
 
 \paragraph{Technical Concerns}~ Keeping the social considerations
 in mind, we can now start to ask what technologies might work best for
-deploying surgical simulations. Probably the largest architectual
+deploying surgical simulations. Probably the largest architectural
 question is whether we want a wholly local application or a networked
 application. The advantages of a local application include increased
 simplicity, potentially better access to client resources, and more
@@ -82,7 +60,7 @@ resources. For simulations, which are computationally intensive, a
 purely local application might be difficult to deploy at scale due to
 hardware costs. The addition of networking allows us to break many of
 these issues apart and distribute them more fairly across multiple
-machines. In such an architecure, servers capable of large
+machines. In such an architecture, servers capable of large
 computations could service multiple clients, enabling larger
 deployments with less capital investment. On the other hand, network
 designs become dependent on another system: The network itself. For
@@ -122,7 +100,7 @@ offer more opportunities for more centralized upgrades.
 \section{System Architecture Comparisons}
 
 Over the several years of research leading up to this dissertation,
-multiple system designs for a surgical \gls{pvis} were developed and
+multiple system designs for a surgical SAVS were developed and
 tested. In this section, each design will be covered in detail along
 with its particular benefits and problems. The goal of this section is
 to demonstrate how different system designs fit with different
@@ -130,8 +108,11 @@ deployment concerns and how emerging technologies can support
 simulation deployments more easily than in the past.
 
 All of the following designs attempted to fulfill a common set of
-requirements. While the following subsections may or may not mention
-them all, the following functionality was available in all designs:
+requirements. Some designs had additional features that were made
+available due to their particular implementation details. Those unique
+features will be discussed for each design in turn. While the
+following subsections may or may not mention all details, the following
+functionality was available in all designs:
 
 \begin{enumerate}
 \item \textbf{Real-time physics simulation} 3D models of tissue were
@@ -177,9 +158,33 @@ them all, the following functionality was available in all designs:
   \end{enumerate}
 
 
-  Some designs had additional features that were made available due
-  to their particular implementation details. Those unique features
-  will be discussed for each design in turn.
+  It should be stated that the majority of the tool's user interface
+  was designed by our domain collaborator, Dr. Court Cutting. His
+  initial system set the standard for how all subsequent iterations of
+  the tool allowed users to interact with hooks, sutures, and tissue
+  cutting. Over the course of development, these design principles
+  remained fixed, despite continuous replacement of implementations.
+  
+  % Before moving on to the specific details of each implementation,
+  % some time should be spent breaking these systems down according to
+  % SAVS aspects, as detailed in Chapter \ref{chp:motivation}. In
+  % terms of Geometry, all of the designs presented in this chapter
+  % presented a three dimensional object to the user via a standard
+  % computer display, which represented either a real anatomical region
+  % (i.e. the human scalp) or a conceptual workspace for academic
+  % examples. There was minimal or no surrounding environment around the
+  % simulated tissue object. The system was Reactive to users by means
+  % of both user constraints and by supporting topology alteration,
+  % allowing them to push, pull, and cut the virtual tissue. Dynamism
+  % was provided by a continuous quasistatic simulation, which used
+  % successive frames of iteration to deliver time-evolving deformations
+  % as users interacted with the object. Direct user Interaction came in
+  % the form of placing point constraints, either from the object to
+  % fixed locations in space or to another point on the object, and by
+  % drawing incisions with C0 continuous curves. Finally, the systems
+  % provided Utility for training and authoring by supporting loading
+  % and saving of procedures, along with interactive simulation rates to
+  % support real-time authoring applications.
 
 \subsection{Traditional Desktop Application: Building the Monolith}
 
@@ -219,7 +224,7 @@ interface. This approach had many positive aspects:
    \item \textbf{Platform Control} Since everything was designed by
      hand, all aspects of the application could be tuned to desired
      functionality. While certain choices were constrained by
-     selection of a GUI toolkit library (wxWidgets), the choice of the
+     selection of a GUI toolkit library \citep{wxWid:2017}, the choice of the
      library itself was made freely.
     
 \end{enumerate}
@@ -267,7 +272,7 @@ interface. This approach had many positive aspects:
  remote machine and its results displayed on a local client. These
  initial forays into this idea were built on the previous client and
  used an interchange library from the Apache Project called
- Thrift. Thrift allowed the creation of multi-language bindings to be
+ Thrift~\citep{ASF:2008--2014}. Thrift allowed the creation of multi-language bindings to be
  delivered over network as RPC (Remote Procedure Call) APIs. Initial
  experiments involved splitting the former unified application into
  two parts: a visual frontend and a simulation backend. These parts
@@ -275,7 +280,7 @@ interface. This approach had many positive aspects:
  the network.
 
  Once this new organization was working, the frontend was rewritten as
- a web client, which used HTML, Javascript, and WebGL to replicate the
+ a web client, which used HTML, Javascript, and WebGL~\citep{webgl1.0} to replicate the
  functionality of the older C++ GUI. Further experimentation with this
  arrangement eventually showed a significant problem with Thrift's RPC
  style communication: namely it made developing smooth, lag-free user
@@ -287,7 +292,7 @@ interface. This approach had many positive aspects:
  communication. We finally settled on a newer Web standard:
  Websockets.
 
- The Websocket standard is a full-duplex communication protocol
+ The Websocket standard~\citep{rfc6455} is a full-duplex communication protocol
  available in HTML5. The standard defines a custom protocol over TCP, where
  messages can be send from either end and are guaranteed to
  arrive in order on the other side. The primary benefits of the
@@ -458,16 +463,17 @@ interface. This approach had many positive aspects:
  \subsection{Monolithic Web Design: Electron}
 
  The third design made use of a relatively recent framework called
- Electron. Electron is a framework for building traditional desktop
- applications by using web application development tools. It does so
- by combining Google's open source browser Chromium and NodeJS, a set
- of standard libraries for Javascript which allow more traditional
- system level calls, such as file access and process
- management. This framework provides developers access to a familiar
- web development environment, along with access to the underlying
- operating system, functionality normally inaccessible in the
- browser. Using this framework, it was possible to build the third
- design architecture: the monolithic web application.
+ Electron. Electron~\citep{Electron:2016} is a framework for building
+ traditional desktop applications by using web application development
+ tools. It does so by combining Google's open source browser Chromium
+ and NodeJS~\citep{NodeJS:2017}, an interpreter and set of standard libraries for
+ Javascript which allow more traditional system level calls, such as
+ file access and process management. This framework provides
+ developers access to a familiar web development environment, along
+ with access to the underlying operating system, functionality
+ normally inaccessible in the browser. Using this framework, it was
+ possible to build the third design architecture: the monolithic web
+ application.
 
  The primary concern with using Electron as a the application
  framework is performance. With the original design, everything was

@@ -10,15 +10,15 @@ careful attention to the interplay between modern compute ability
 verses memory availability can help us create more optimized solvers
 for elastic materials. To do this, we will be targeting the common
 approach used by many non-linear elastic simulations, namely the
-combination of a outer Newton method around an inner linear solver.
+combination of an outer Newton method around an inner linear solver.
 
 The Newton method has largely been the golden standard for the
 simulation of nonlinear elastic bodies, although a number of
 interesting deviations from this standard approach have garnered
 attention in the graphics literature (e.g., nonlinear multigrid cycles
-\cite{ZhuSTB:2010}, projective and position-based dynamics
-\cite{MuellHHR:2007,BouazMLKP:2014,Wang:2015} and shape matching
-\cite{RiverJ:2007}). In a typical Newton scheme, once a linear
+\citep{ZhuSTB:2010}, projective and position-based dynamics
+\citep{MuellHHR:2007,BouazMLKP:2014,Wang:2015} and shape matching
+\citep{RiverJ:2007}). In a typical Newton scheme, once a linear
 approximation to the governing equations is computed, most
 practitioners will either employ a direct method or select a technique
 from a spectrum of iterative methods in order to solve the resulting
@@ -73,7 +73,7 @@ system.
  iterative methods are assembly-free, alleviating the need to
  construct or store the stiffness matrix.  In fact, some of the most
  efficient techniques go to great lengths to minimize memory footprint
- \cite{McAdaZSETTS:2011} while leveraging SIMD and multithreading.
+ \citep{McAdaZSETTS:2011} while leveraging SIMD and multithreading.
 
  Iterative solvers often have to cope with challenges of their
  own. Local methods like Jacobi, GS, and SOR are slow to capture
@@ -99,7 +99,7 @@ system.
  a handful of iterations would suffice to solve the linearized
  equations. Multigrid-based preconditioners might achieve more
  competitive performance, but such approaches have been primarily
- tested in the area of fluid simulation \cite{FerstWD:2014} and not so
+ tested in the area of fluid simulation \citep{FerstWD:2014} and not so
  much in nonlinear deformable solids.
 
  We propose a hybrid method that balances certain advantages of both
@@ -145,7 +145,7 @@ system.
   high-resolution embedded face model. The relatively small thickness
   of the elastic flesh, in addition to the topological features near
   the nose and mouth regions, would complicate the use of a typical
-  multigrid solver \cite{McAdaZSETTS:2011} .}
+  multigrid solver \citep{McAdaZSETTS:2011} .}
 \vspace{-.15in} \label{fig:macroblocks:face-smash-example}
  \end{figure}
 
@@ -166,30 +166,31 @@ The governing equations describing the deformation of an elastic
 nonlinear solid depend on the time integration scheme employed. For
 example, in quasistatic simulation we have to solve the nonlinear
 equilibrium equation $\mathbf{f}(\mathbf{x};t)=0$ at any time instance
-$t$. Using an initial guess $\mathbf{x}^{(k)}$ of the solution,
+$t$. Using an initial guess $\mathbf{x}_n$ of the solution,
 Newton's method computes a correction
-$\delta\mathbf{x}=\mathbf{x}^{(k+1)}\!\!-\!\mathbf{x}^{(k)}$ by
+$\delta\mathbf{x}=\mathbf{x}_{n+1}\!\!-\!\mathbf{x}_n$ by
 solving the linearized system:
 \begin{equation}
+  \bigg(
 \underbrace{\left.
 -\frac{\partial\mathbf{f}}{\partial\mathbf{x}}
-\right|_{\mathbf{x}^{(k)}}
-}_{\mathbf{K}(\mathbf{x}^{(k)})}
-\cdot\ \ 
-\delta\mathbf{x}=\mathbf{f}(\mathbf{x}^{(k)})
+\right|_{\mathbf{x}_n}
+}_{\mathbf{K}(\mathbf{x}_n)}
+\bigg) \ 
+\delta\mathbf{x}=\mathbf{f}(\mathbf{x}_n)
 \label{eqn:macroblocks:quasistatic}
 \end{equation}
 If an implicit Backward Euler scheme was used, a system with similar
-structure would form the core of Newton's method \cite{SifakB:2012}:
+structure would form the core of Newton's method \citep{SifakB:2012}:
 \begin{equation}
-\left[(1\!\!+\!\!\frac{\gamma}{\Delta t})\mathbf{K}(\mathbf{x}^{(k)})\!+\!\frac{1}{\Delta t^2}\mathbf{M}\right]
-\delta\mathbf{x}=\frac{1}{\Delta t}\mathbf{M}(\mathbf{v}^p\!\!-\!\mathbf{v}^{(k)})+\mathbf{f}(\mathbf{x}^{(k)},\mathbf{v}^{(k)})
+\left[(1\!\!+\!\!\frac{\gamma}{\Delta t})\mathbf{K}(\mathbf{x}_n)\!+\!\frac{1}{\Delta t^2}\mathbf{M}\right]
+\delta\mathbf{x}=\frac{1}{\Delta t}\mathbf{M}(\mathbf{v}_p\!\!-\!\mathbf{v}_n)+\mathbf{f}(\mathbf{x}_n,\mathbf{v}_n)
 \label{eqn:macroblocks:be}
 \end{equation}
 where $\mathbf{M}$ is the mass matrix, $\gamma$ is the Rayleigh
-coefficient, $\mathbf{v}^p$ the velocities at the previous time step,
+coefficient, $\mathbf{v}_p$ the velocities at the previous time step,
 and $\mathbf{f}$ now includes both elastic and damping forces (see
-\cite{SifakB:2012} for further details).
+\citep{SifakB:2012} for further details).
 
 Despite the semantic differences, the linear systems in equations
 (\ref{eqn:macroblocks:quasistatic}) and (\ref{eqn:macroblocks:be}) are very similar from an
@@ -413,7 +414,7 @@ tetrahedral or hexahedral element, the \emph{macroblock stiffness
 boundary to forces on the same boundary nodes, under the assumption
 that all interior nodes are functionally constrained to their exact
 solution subject to the boundary displacement values. We note the
-similarity of this concept to the work of Gao et al \cite{GaoMS:2014},
+similarity of this concept to the work of \citet{GaoMS:2014},
 although they used a Schur complement to abstract away the interior
 nodes of an entire model, rather than assembling an elastic solid from
 macroscopic cell blocks.
@@ -755,11 +756,11 @@ skinning animations and elastic models colliding with kinematic rigid
 objects.  We used a hexahedral finite element discretization of
 corotated linear elasticity, with the standard adjustments for robust
 simulation in the presence of inverted elements
-\cite{IrvinTF:2004}. Given that our method uses a direct solver at the
+\citep{IrvinTF:2004}. Given that our method uses a direct solver at the
 macroblock level, we opted to integrate the strain energy using the
 eight Gauss quadrature points for each hexahedron, as opposed to the
 one-point quadrature scheme that is often used
-\cite{McAdaZSETTS:2011,PatteMS:2012}. This more accurate quadrature
+\citep{McAdaZSETTS:2011,PatteMS:2012}. This more accurate quadrature
 scheme does not require explicit stabilization, and adds no extra
 algorithmic effort in our solver other than a modest increase in the
 matrix construction cost.
@@ -833,11 +834,10 @@ models of figures \ref{fig:macroblocks:skinning-example} and
 macroblock solver. In addition, we repeat the skinning simulation of
 figure \ref{fig:macroblocks:skinning-example} using this time a highly optimized
 and parallelized matrix-free implementation of unpreconditioned
-Conjugate Gradients, borrowed from the work of Mitchell et al
-\cite{MitchCS:2015}. While using this matrix-free CG solver, we
+Conjugate Gradients, borrowed from the work of \citet{MitchCS:2015}. While using this matrix-free CG solver, we
 consider two discretization alternatives: (a) a one-point quadrature
 scheme, with explicit stabilization
-\cite{McAdaZSETTS:2011,PatteMS:2012}, listed in the third column and
+\citep{McAdaZSETTS:2011,PatteMS:2012}, listed in the third column and
 (b) a more accurate 8-point quadrature scheme matching the one in our
 macroblock solver (fourth column). As mentioned, the quadrature scheme
 does not affect the solve times of our method, once the matrix has

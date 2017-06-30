@@ -4,28 +4,15 @@
 \section{Non-manifold Embedding}
 \label{sec:hybrid}
 
-\begin{figure}
-  \centering
-  \includegraphics[width=.9\textwidth]{chapter_gridiron/images/New_HybridLattice2.pdf}
- % \includegraphics[width=.25\textwidth]{/tmp/foo.png}
-\vspace*{-.1in}
-\caption{Illustration of a cut generating a non-manifold lattice}{ (a) A cut
-  passing through the grid. (b) Mesh cells generated for the top half
-  of the cut. (c) Mesh cells generated for the bottom half of the
-  cut. (d) Cut surface is colored to show cell assignment.}
-\vspace*{-.15in}
-\label{Fig:MaterialContinuity}
-\end{figure}
-
 We employ an embedded simulation similar to other authors, who used
 regular lattice embeddings for performance
-\cite{MuellTG:2004,RiverJ:2007,McAdaZSETTS:2011}. However, due to the
+\citep{MuellTG:2004,RiverJ:2007,McAdaZSETTS:2011}. However, due to the
 presence of extremely thin incisions common in surgical models, standard
 lattice embedding would not be able to resolve the tissue topology,
 unless an extremely high resolution embedding was used. We thus adopt
 a non-manifold lattice-derived embedding discretization in the spirit
 of Virtual Node or XFEM methods
-\cite{MolinBF:2004,SifakDF:2007,NesmeKJF:2009}.  In this chapter, we
+\citep{MolinBF:2004,SifakDF:2007,NesmeKJF:2009}.  In this chapter, we
 describe how these non-manifold embedding structures can be easily
 constructed and how they can be used for handling contact scenarios in
 addition to geometry representation. The following chapter will
@@ -71,65 +58,6 @@ commonplace.
 \label{Fig:CuttingFineGrid}
 \end{figure}
 
-Given a cut surface mesh, we first create a fine rasterization of the
-surface. The resolution of the rasterization is selected to capture
-all desired topological detail (typically an order of magnitude finer
-than simulation resolution). In Figure \ref{Fig:CuttingFineGrid}, it
-is possible to see the fine rasterization grid in contrast to the
-coarser simulation resolution.  The rasterization is performed by
-detecting all voxels intersected by the object surface and
-flood-filling to mark the volumetric material region.  Once the
-rasterization is complete, subsequent embedding operations are purely
-combinatorial, and not sensitive to poor conditioning of surface mesh
-elements.  Additionally, this fine-grid embedding can also act as an
-interface layer to more complex embedding schemes, such as the
-non-manifold approach described next. We leverage this by translating
-any deformation results back to the fine-grid embedding prior to
-rendering, to hide non-manifold embedding or numerical solution
-details from the visual front-end.
-
-\subsection{Non-Manifold mesh generation}
-\label{sec:nonmanifoldmeshgeneration}
-
-We now seek to construct a coarser resolution explicit mesh
-discretization, which is allowed to be non-manifold in regions, as
-shown in Figure \ref{Fig:MaterialContinuity}. We will extend the
-paradigm of non-manifold embedding proposed by Teran et al.\!
-\shortcite{TeranSBNLF:2005} and Sifakis et al.\!
-\shortcite{SifakDF:2007} using the precomputed fine grid rasterization
-to answer material connectivity predicates. Our non-manifold mesh
-generation process is outlined in Algorithm
-\ref{alg:NonmanifoldMeshGeneration}, and illustrated intuitively in
-Figure \ref{Fig:MaterialContinuity}. Note that, in the pseudocode
-provided, there are two geometric predicates being used: (a)
-Determination of material components (line 3) requires the
-identification of all disconnected components of material present in
-the intersection of our domain with a given lattice cell. (b)
-Adjacent-element material continuity (line 10) is a predicate invoked
-to determine if two material fragments, associated with adjacent
-lattice cells, exhibit material continuity across their common
-face. These two geometric predicates are expressed in a fashion that
-is agnostic to the underlying geometric representation of material; in
-Teran et al.\! \shortcite{TeranSBNLF:2005} the assumption is that a
-tetrahedralized model of the material is available, while Sifakis et
-al.\! \shortcite{SifakDF:2007} define material fragments indirectly,
-by specifying cutting surfaces instead. In our case, the availability
-of the fine-grid rasterization makes both such operations purely
-combinatorial in nature. Material fragments within a coarse cell are
-computed via flood-fill, and fragments on adjacent cells are
-continuous if they contain adjacent \emph{fine} cells on their
-rasterization. At the conclusion of this step, we have produced a
-coarse mesh (with explicitly stored connectivity), whose topology is
-as close as possible to the embedded geometry.
-
-This generated mesh is now suitable for simulation, allowing us to
-correctly embed opposite sides of a cut or thin feature in
-topologically disconnected cells. However, beyond simulation, this
-approach can also be valuable for detecting and handling contact
-scenarios under the context of soft-body self collisions. The
-remaining sections in this chapter will demonstrate how this embedding
-technique can be adapted to this purpose via a technique we call
-non-manifold level sets.
 
 \begin{algorithm}
   \caption{Non-Manifold Simulation Mesh Construction}{This algorithm
@@ -171,11 +99,84 @@ non-manifold level sets.
 \end{algorithmic}
 \end{algorithm}
 
+
+Given a cut surface mesh, we first create a fine rasterization of the
+surface. The resolution of the rasterization is selected to capture
+all desired topological detail (typically an order of magnitude finer
+than simulation resolution). In Figure \ref{Fig:CuttingFineGrid}, it
+is possible to see the fine rasterization grid in contrast to the
+coarser simulation resolution.  The rasterization is performed by
+detecting all voxels intersected by the object surface and
+flood-filling to mark the volumetric material region.  Once the
+rasterization is complete, subsequent embedding operations are purely
+combinatorial and not sensitive to poor conditioning of surface mesh
+elements.  Additionally, this fine-grid embedding can also act as an
+interface layer to more complex embedding schemes, such as the
+non-manifold approach described next. We leverage this by translating
+any deformation results back to the fine-grid embedding prior to
+rendering, to hide non-manifold embedding or numerical solution
+details from the visual front-end.
+
+\subsection{Non-Manifold mesh generation}
+\label{sec:nonmanifoldmeshgeneration}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=.9\textwidth]{chapter_gridiron/images/New_HybridLattice2.pdf}
+ % \includegraphics[width=.25\textwidth]{/tmp/foo.png}
+\vspace*{-.1in}
+\caption{Illustration of a cut generating a non-manifold lattice}{ (a) A cut
+  passing through the grid. (b) Mesh cells generated for the top half
+  of the cut. (c) Mesh cells generated for the bottom half of the
+  cut. (d) Cut surface is colored to show cell assignment.}
+\vspace*{-.15in}
+\label{Fig:MaterialContinuity}
+\end{figure}
+
+We now seek to construct a coarser resolution explicit mesh
+discretization, which is allowed to be non-manifold in regions, as
+shown in Figure \ref{Fig:MaterialContinuity}. We will extend the
+paradigm of non-manifold embedding proposed by
+\citet{TeranSBNLF:2005} and 
+\citet{SifakDF:2007} using the precomputed fine grid rasterization
+to answer material connectivity predicates. Our non-manifold mesh
+generation process is outlined in Algorithm
+\ref{alg:NonmanifoldMeshGeneration}, and illustrated intuitively in
+Figure \ref{Fig:MaterialContinuity}. Note that, in the pseudocode
+provided, there are two geometric predicates being used: (a)
+Determination of material components (line 3) requires the
+identification of all disconnected components of material present in
+the intersection of our domain with a given lattice cell. (b)
+Adjacent-element material continuity (line 10) is a predicate invoked
+to determine if two material fragments, associated with adjacent
+lattice cells, exhibit material continuity across their common
+face. These two geometric predicates are expressed in a fashion that
+is agnostic to the underlying geometric representation of material; in
+\citet{TeranSBNLF:2005} the assumption is that a
+tetrahedralized model of the material is available, while \citet{SifakDF:2007} define material fragments indirectly,
+by specifying cutting surfaces instead. In our case, the availability
+of the fine-grid rasterization makes both such operations purely
+combinatorial in nature. Material fragments within a coarse cell are
+computed via flood-fill, and fragments on adjacent cells are
+continuous if they contain adjacent \emph{fine} cells on their
+rasterization. At the conclusion of this step, we have produced a
+coarse mesh (with explicitly stored connectivity), whose topology is
+as close as possible to the embedded geometry.
+
+This generated mesh is now suitable for simulation, allowing us to
+correctly embed opposite sides of a cut or thin feature in
+topologically disconnected cells. However, beyond simulation, this
+approach can also be valuable for detecting and handling contact
+scenarios under the context of soft-body self collisions. The
+remaining sections in this chapter will demonstrate how this embedding
+technique can be adapted to this purpose via a technique we call
+non-manifold level sets.
+
 \section{Level Sets \& Collision Processing}
 Before we discuss the details of non-manifold levelsets, it is
 important to review the basic concept of a level set and how it can be
 used for collision handling. Nearly three decades after their
-introduction \cite{OsherS:1988}, level sets have evolved into one of
+introduction \citep{OsherS:1988}, level sets have evolved into one of
 the most widely used representations of geometry, alongside
 traditional alternatives such as meshes, splines and subdivision
 surfaces. A level set implicitly represents a domain boundary
@@ -185,17 +186,20 @@ $\Gamma=\partial\Omega$ as the zero-value isosurface (i.e. zero
 \Gamma=\left\{\vec{x}\in\mathbf{R}^n\ |\ \phi(\vec{x})=0\right\}
 \label{eqn:definition}
 \end{equation}
-of a scalar field $\phi(\vec{x})$ measuring signed distances to the
+of a scalar field $\phi(\vec{x})$\footnote{It should be noted that the
+function $\phi(\vec{x})$ used here is different than the deformation
+map $\phi(\vec{X})$ described in Chapter \ref{chp:engineering},
+despite the use of the same symbol.} measuring signed distances to the
 boundary of the object $\Omega\subset\mathbf{R}^n$. Level sets allow
 for fast $O(1)$ time point-object intersection queries or point
 projections to the object surface. Model deformation is also possible,
 including topological split and merge operations, simply by varying
 the underlying scalar field. Level sets are used in a diverse range of
-applications including surface editing \cite{MusetBWB:2002},
-tetrahedral meshing \cite{LabelS:2007}, scattered point interpolation
-\cite{ZhaoOF:2001}, fluid simulation \cite{OsherF:2002} and collision
-processing for deformable solids \cite{Gascu:1993}, rigid bodies
-\cite{GuendBF:2003} and skinning animations \cite{VaillBGCRWGP:2013}.
+applications including surface editing \citep{MusetBWB:2002},
+tetrahedral meshing \citep{LabelS:2007}, scattered point interpolation
+\citep{ZhaoOF:2001}, fluid simulation \citep{OsherF:2002} and collision
+processing for deformable solids \citep{Gascu:1993}, rigid bodies
+\citep{GuendBF:2003} and skinning animations \citep{VaillBGCRWGP:2013}.
 
 
 \begin{figure}
@@ -222,8 +226,8 @@ processing for deformable solids \cite{Gascu:1993}, rigid bodies
 % structure we propose, which is essentially a multivalued signed
 % distance field, might require a different interface depending on the
 % end application. For example, applications in multiphase
-% fluids~\cite{LosasSSF:2006}, multi-material surface
-% tracking~\cite{DaBG:2014} or volumetric meshing~\cite{SachtJPSS:2013}
+% fluids~\citep{LosasSSF:2006}, multi-material surface
+% tracking~\citep{DaBG:2014} or volumetric meshing~\citep{SachtJPSS:2013}
 % may contribute their own interpretations to what a non-manifold
 % feature may be and what algorithmic routines need to be supported.
 
@@ -233,7 +237,7 @@ processing for deformable solids \cite{Gascu:1993}, rigid bodies
 % important to recognize that the semantics of a \emph{multivalued or
 %   non-manifold level set} can invite quite distinct interpretations in
 % different use scenarios. For example, fluid simulation of multiple
-% immiscible liquids \cite{LosasSSF:2006} might consider triple
+% immiscible liquids \citep{LosasSSF:2006} might consider triple
 % junctions as a ``non-manifold'' trait of interest, while fluid
 % animations that allow different liquids to diffuse into one another
 % might require modeling phase boundaries that can cross and overtake
@@ -271,9 +275,9 @@ processing for deformable solids \cite{Gascu:1993}, rigid bodies
 % Self-collision in volumetric bodies gives rise to interesting
 % options: a) only the surface need be processed (while elasticity
 % takes care of the rest), and b) as opposed to cloth
-% simulations~\cite{BarafWK:2003}, the starting state need not be
+% simulations~\citep{BarafWK:2003}, the starting state need not be
 % interpenetration-free - these facts have been leveraged in
-% conjunction with level sets~\cite{TeranSIF:2005,McAdaZSETTS:2011}
+% conjunction with level sets~\citep{TeranSIF:2005,McAdaZSETTS:2011}
 % even in performance-conscious environments and have proven to be
 % robust in resolving extremely complex collision scenarios such as
 % triple contacts. However, a significant limitation of this approach
@@ -328,45 +332,45 @@ processing for deformable solids \cite{Gascu:1993}, rigid bodies
 % \label{sec:previous-work}
 
 % Level set methods were first introduced \changed{by Osher and
-%   Sethian~\shortcite{OsherS:1988}}{in~\cite{OsherS:1988}} for tracking
+%   Sethian~\citet{OsherS:1988}}{in~\citep{OsherS:1988}} for tracking
 % moving interfaces in the context of Hamilton-Jacobi equations.
 % Subsequently, \changed{Adalsteinsson and
-%   Sethian~\shortcite{AdalsS:1994}}{\cite{AdalsS:1994}} proposed
+%   Sethian~\citet{AdalsS:1994}}{\citep{AdalsS:1994}} proposed
 % substantial \changed{runtime savings }{savings to the run-time }by
 % restricting computations to a thin band of active voxels near the
 % interface.
-% \changed{Sethian~\shortcite{Sethi:1998}}{\cite{Sethi:1998}} proposed
+% \changed{Sethian~\citet{Sethi:1998}}{\citep{Sethi:1998}} proposed
 % fast marching methods for monotonically advancing fronts as well as
 % for redistancing the level set using values seeded only on the narrow
 % band.  Besides fast computation, a number of methods have also been
 % proposed for efficiently storing level sets including
-% octrees~\cite{LosasGF:2004}, RLE
-% representations~\cite{HoustNBNM:2006,IrvinGLF:2006,ChentM:2011}, the
-% VDB data structure~\cite{Muset:2013} which evolved from Dynamic
-% Tubular Grids~\cite{NielsM:2006} and the DB+Grid data
-% structure~\cite{Muset:2011}, and the virtual-memory based SPGrid data
-% structure~\cite{SetalABS:2014}.
+% octrees~\citep{LosasGF:2004}, RLE
+% representations~\citep{HoustNBNM:2006,IrvinGLF:2006,ChentM:2011}, the
+% VDB data structure~\citep{Muset:2013} which evolved from Dynamic
+% Tubular Grids~\citep{NielsM:2006} and the DB+Grid data
+% structure~\citep{Muset:2011}, and the virtual-memory based SPGrid data
+% structure~\citep{SetalABS:2014}.
 
 % Methods have been proposed for computing implicit representations of
-% non-manifold surfaces~\cite{BloomF:1995,YuanYW:2012}. Similar ideas
-% were used for simulating bubbles~\cite{ZhengYP:2006} and multiphase
-% fluids~\cite{LosasSSF:2006}. Our work diverges from these approaches
+% non-manifold surfaces~\citep{BloomF:1995,YuanYW:2012}. Similar ideas
+% were used for simulating bubbles~\citep{ZhengYP:2006} and multiphase
+% fluids~\citep{LosasSSF:2006}. Our work diverges from these approaches
 % as we enhance the expressive capability of a \emph{single} level set
 % by embedding signed distance values on an explicit mesh. Our work is
 % related to the practice of embedding high-resolution geometry in
 % regular meshes, a concept that was first leveraged \changed{by
-%   M\"{u}ller et al.~\shortcite{MulleTG:2004}}{in~\cite{MulleTG:2004}}
+%   M\"{u}ller et al.~\citet{MulleTG:2004}}{in~\citep{MulleTG:2004}}
 % for deformable body simulations and fracture.  In addition to
 % hexahedral embeddings, methods such as the virtual node
-% algorithm~\cite{MolinBF:2004} have been used to create non-manifold
+% algorithm~\citep{MolinBF:2004} have been used to create non-manifold
 % tetrahedral lattices that correspond to thin topological features in
 % the embedding geometry. Virtual node concepts are also similar to XFEM
-% methods which were used for crack modeling~\cite{MoeesDB:1999} and for
-% cutting and fracturing thin shells~\cite{KaufmMBGG:2009}. This
+% methods which were used for crack modeling~\citep{MoeesDB:1999} and for
+% cutting and fracturing thin shells~\citep{KaufmMBGG:2009}. This
 % principle has continued to evolve with many of the topological
 % limitations in prior approaches being raised \changed{by Sifakis et
-%   al.~\shortcite{SifakDF:2007}}{in~\cite{SifakDF:2007}} and has been
-% successfully used in production tools as well~\cite{HellrSSST:2009}.
+%   al.~\citet{SifakDF:2007}}{in~\citep{SifakDF:2007}} and has been
+% successfully used in production tools as well~\citep{HellrSSST:2009}.
 
 % Our non-manifold level set approach is inspired by these methods, but
 % it needs to be made cognizant of further topological limitations that
@@ -374,18 +378,18 @@ processing for deformable solids \cite{Gascu:1993}, rigid bodies
 % Section~\ref{sec:non-manifold-level-sets}). Notably, when dealing with
 % collisions near thin features, all of the aforementioned approaches
 % employed detection and response techniques based on surface
-% meshes~\cite{BridsFA:2002} that rely on the availability of good
+% meshes~\citep{BridsFA:2002} that rely on the availability of good
 % surface meshes, are computationally expensive, presume collision-free
 % history or use impulses which makes implicit integration
 % challenging. To accelerate collision detection and response while
 % allowing for implicit integration, methods have been proposed using
-% implicit surface representations~\cite{McAdaZSETTS:2011} which work
+% implicit surface representations~\citep{McAdaZSETTS:2011} which work
 % even in near-interactive settings, but require enough level set
 % resolution to avoid any non-manifold features altogether. Recently,
-% image-based techniques~\cite{FaureBAF:2008,WangFP:2012} have been
+% image-based techniques~\citep{FaureBAF:2008,WangFP:2012} have been
 % proposed which provide an interesting alternative.  Finally, implicit
 % surfaces have also been recently used in real-time skinning
-% applications~\cite{VaillBGCRWGP:2013,VaillGBWC:2014}.
+% applications~\citep{VaillBGCRWGP:2013,VaillGBWC:2014}.
 
 \subsection{Level set collisions for volumetric solids}
 \label{sec:self-collisions}
@@ -395,7 +399,7 @@ processing for deformable solids \cite{Gascu:1993}, rigid bodies
 
 Self-collision processing is paramount in generating visually attractive and
 realistic shapes, as is evident in character skinning pipelines
-\cite{McAdaZSETTS:2011,VaillBGCRWGP:2013}. Handling collisions in
+\citep{McAdaZSETTS:2011,VaillBGCRWGP:2013}. Handling collisions in
 volumetric solids can be quite different than the typical cloth
 collision pipeline. With volumetric solids there is a clear
 distinction between an \emph{inside} and an \emph{outside} region,
@@ -403,10 +407,10 @@ making it possible to process collisions in a single time instance of
 a simulated deformation. In contrast, if collisions are detected in a
 cloth simulation, we need to rely on deformation history to determine
 how the cloth surface is to be untangled (unless global intersection
-analysis~\cite{BarafWK:2003} is performed). While cloth simulations
+analysis~\citep{BarafWK:2003} is performed). While cloth simulations
 typically strive for a collision-free state at all times, commonly
 enforced via impulses in semi-implicit integration
-schemes~\cite{BridsMF:2003}, volumetric objects can tolerate
+schemes~\citep{BridsMF:2003}, volumetric objects can tolerate
 occasional, limited interpenetration, and respond to collision with
 penalty forces which are more easily coupled with explicit integration
 schemes. In this section, we review a level-set assisted technique
@@ -442,7 +446,7 @@ Our collision pipeline consists of two stages: In the detection stage,
 discrete material points (labeled \emph{collision proxies}) are
 checked for collision against the object interior. In the response
 stage, we use a spring-like penalty force to push each colliding proxy
-to the object surface~\cite{TeranSIF:2005,McAdaZSETTS:2011}. Since
+to the object surface~\citep{TeranSIF:2005,McAdaZSETTS:2011}. Since
 simulated solids are typically endowed with elastic material models
 that prevent (or discourage) inversion, in all our examples we chose
 to only seed collision proxies on the object surface, as internal
@@ -464,7 +468,7 @@ projecting the offending location to the model surface. Both
 predicates could be answered in $O(1)$ if a level set representation
 of the model was available; unfortunately, the continuous deformation
 makes updating an implicit representation impractical. Hence, we opt
-for an \emph{approximate} algorithm ~\cite{McAdaZSETTS:2011} that only
+for an \emph{approximate} algorithm ~\citep{McAdaZSETTS:2011} that only
 relies on a level set representation of the \emph{undeformed} model.
 
 For simplicity, let us assume that the deformable volumetric solids
@@ -476,14 +480,14 @@ element in the deformed configuration. Similarly, let $P_i$ denote the
 location of the $i$-th collision proxy in the undeformed configuration
 and $p_i$ denote its deformed counterpart.  Collision proxies can be
 regularly sampled on the \emph{surface} of the simulated object, or
-the surface vetices of the embedded object themselves can be used as
+the surface vertices of the embedded object themselves can be used as
 proxies, if their distribution is reasonably regular\footnote{Proxy
-  spacing is an important task, though not particularly important for
+  spacing is an important task, though somewhat tangential to
   this conversation. Too few proxies in a region can lead to poor
-  collision response or excessive penteration. Too many proxies can
-  lead to an overconstrained problem, resulting in slow convergence or
-  other unfortunate artifacts. For our system, a possion-disk
-  sampling technique \cite{CorsiCS:2012}\cite{Devro:1986} was used to generate a blue noise pattern
+  collision response or excessive penetration. Too many proxies can
+  lead to an over-constrained problem, resulting in slow convergence or
+  other unfortunate artifacts. For our system, a Poisson-disk
+  sampling technique \citep{CorsiCS:2012,Devro:1986} was used to generate a blue noise pattern
 of proxies over the model surfaces.}.  Let $\phi$
 denote the level set function for the simulated volume in the
 undeformed configuration. The collision handling routine performs the
@@ -504,10 +508,11 @@ following steps for each proxy $p_i$\ :
     $P_i$ in the undeformed configuration. This may be more than one element,
     e.g.\ if $P_i$ was a mesh vertex. We trivially have that
     $e_i\in\mathcal{E}_{\mbox{\small int}}$, as $p_i$ is embedded in it.
-    Similar to McAdams et al.~\shortcite{McAdaZSETTS:2011}, we prune $e_i$ along with all of its immediate topological neighbors from
+    Similar to \citet{McAdaZSETTS:2011}, we prune $e_i$ along with all of its immediate topological neighbors from
     $\mathcal{E}_{\mbox{\small int}}$, since collision response between
-    primitives that share embedding parents can be problematic (we rely on
-    elasticity instead, to discourage extreme cases of local collision).
+    primitives that share embedding parents can be problematic
+    (instead, we rely on
+    elasticity to discourage extreme cases of local collision).
 
 % Element $e_i$ and its topological neighbors
 %    are discarded from the computed set, where $P_i$ is embedded
@@ -572,7 +577,7 @@ dimensions.
 In principle, based on equation (\ref{eqn:definition}) a level set
 could represent any object $\Omega\subset\mathbf{R}^n$. In practice,
 however, the scalar field $\phi(\vec{x})$ is never provided
-analytically, but sampled instead at discrete points in
+analytically, but  instead sampled at discrete points in
 $\mathbf{R}^n$. As a consequence, the expressive ability of discrete
 level sets is limited by the sampling resolution and the interpolation
 scheme used. In the common practice where $\phi$ values are sampled on
@@ -581,8 +586,8 @@ used to define a continuous scalar field, models with multiple
 boundary crossings per grid edge (near narrow gaps or strips, see
 Figure~\ref{fig:underresolved}) cannot be represented. These issues
 can be alleviated to some extent by using adaptive schemes
-\cite{LosasGF:2004,Muset:2013} to concentrate resolution near fine
-features, or hybridizing with point-based methods \cite{EnrigMF:2002}
+\citep{LosasGF:2004,Muset:2013} to concentrate resolution near fine
+features, or hybridizing with point-based methods \citep{EnrigMF:2002}
 to capture details at a sub-cell level. Nevertheless, gratuitously
 increasing the level set sampling resolution is a brute-force remedy
 which quickly becomes impractical if the thickness of topological gaps
@@ -600,14 +605,14 @@ Section~\ref{sec:self-collisions} works well only when a good quality
 level set can be computed from the model's undeformed
 configuration. In such cases, it provides the opportunity for
 excellent performance, even allowing interactive simulation for highly
-detailed models \cite{McAdaZSETTS:2011}, as it allows very aggressive
+detailed models \citep{McAdaZSETTS:2011}, as it allows very aggressive
 integration time steps (tolerating occasional mild inter-penetration)
 and exploits the fast intersection/projection level set queries. The
 approach breaks down, however, in cases where the object cannot be
 resolved by the level set resolution. As a brute-force remedy, it might be
 possible to pose a model in a \emph{reference configuration} that
 avoids thin features (e.g. modeling a hand such that the fingers are
-generously separated \cite{McAdaZSETTS:2011}). However, this
+generously separated \citep{McAdaZSETTS:2011}). However, this
 pre-processing can be tedious (e.g. for faces with narrow clearance
 between the lips), unnatural (if the ``reference pose'' is not really
 a \emph{rest} pose, see the elastic coil in
@@ -655,10 +660,10 @@ have been known to pose challenges not just for level set generation,
 but also for certain dynamic simulation techniques even in the absence
 of collision processing. Of course, simulation of elastic deformation
 is a straightforward proposition, e.g.\ using the Finite Element
-Method~\cite{SifakB:2012}, if an explicit tetrahedral mesh
+Method~\citep{SifakB:2012}, if an explicit tetrahedral mesh
 representation of the model is available. However, if we wish to use
 lattice deformer techniques, capable of high degrees of performance
-optimization~\cite{RiverJ:2007,McAdaZSETTS:2011,MitchCS:2015}, we run
+optimization~\citep{RiverJ:2007,McAdaZSETTS:2011,MitchCS:2015}, we run
 the risk of ``tying'' together disconnected material regions if they
 are separated by a distance smaller than the embedding mesh resolution
 (e.g.\ adjacent helices of the coil, or the two lips of the face model
@@ -669,23 +674,10 @@ features. These methods add non-manifold connectivity to the embedding
 mesh, duplicating elements and degrees of freedom as necessary to best
 capture the embedded model topology.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=.8\columnwidth]{chapter_nonmanifoldlevelsets/images/TransitionFaceNew2.pdf}
-\vspace*{-.1in}
-  \caption{Illustration of handling material bifurcations}{(Left) An example where material bifurcates at an edge in a
-    non-manifold Cartesian embedding. (Right) Level sets can only
-    store a single interface transition at an edge. In the
-    non-manifold level set bifurcations are explicitly recorded in
-    \emph{transition faces} that record a connectivity graph between all cells on
-    the left and right.}
-\vspace*{-.2in}
-  \label{fig:transition-face}
-\end{figure}
 
 Before discussing the details behind our non-manifold level sets, we
 will take a moment to review a common formalism of the non-manifold
-embedding process \cite{SifakDF:2007}. The algorithm is illustrated in
+embedding process \citep{SifakDF:2007}. The algorithm is illustrated in
 Figure~\ref{fig:non-manifold-level-set-generation}. This algorithm is
 very similar to the one presented in Algorthim
 \ref{alg:NonmanifoldMeshGeneration}, except here we are assuming a
@@ -732,49 +724,21 @@ The result is shown in Figure~\ref{fig:non-manifold-level-set-generation}(c); af
 mesh has been fully assembled, with overlapping duplicates of elements properly connected, respecting the topology of the embedded material.
 
  
-\begin{algorithm}
-\caption{Non-Manifold Level Set Mesh Construction: This algorithm is a
-modification of the procedure to generate a basic non-manifold
-embedding (Algorithm \ref{alg:NonmanifoldMeshGeneration}) shown previously. The
-modfications here account for the addition of transition faces to
-track the interface near material bifurcations instead of simply
-collapsing vertices greedily.}
-\label{alg:NonmanifoldLevelsetMeshGeneration}
-\begin{algorithmic}[1]
-\Require Template Embedding Mesh $\mathcal{T}$, Material Description $\mathcal{M}$
-\Procedure{Construct$\_$NonManifold$\_$LevelSet$\_$Mesh}{}
-  \LineComment{Phase 1: Duplicate elements by connected components}
-  \ForAll{Elements in $\mathcal{T}$ : $E_i$}
-     \State $\mathcal{C}$ $\gets$ \Call{Connected$\_$Components}{$\mathcal{M}\cap E_i$}
-     \ForAll{ Components in $\mathcal{C}$ : $m_j$ }
-        \State $D_{i,j}$ $\gets$ \Call{Create$\_$Duplicate}{$T_i$ , $m_j$}
-     \EndFor
-  \EndFor
-  \LineComment{Phase 2: Reconnect or build transition faces}
-   \ForAll{Geometrically adjacent element pairs: $(E_k, E_l)$}
-      \State  $\mathbf{G}$ $\gets$ \Call{Initialize$\_$Bipartite$\_$Graph}{$\mathcal{D}_{k}, \mathcal{D}_{l},\{\}$ }
-      \ForAll{Duplicates from $E_k$ and $E_l$: $(D_{(k,q)}, D_{(l,r)})$}
-         \If{
-           \Call{Material$\_$Continuous}{$D_{(k,q)}$,$D_{(l,r)}$ } }
-            \State \Call{Insert$\_$Edge}{$\mathbf{G},D_{(k,q)},D_{(l,r)}$}
-         \EndIf
-      \EndFor
-      \ForAll{ Connected subgraphs of $\mathbf{G}$: $C_i$}
-        \If{ $\#$\Call{Edges}{$C_i$} = 1 }
-           \Comment Face is Manifold
-           \State \Call{Collapse}{\textit{Vertices on common face}}
-        \EndIf
-        \If{ $\#$\Call{Edges}{$C_i$} $> 1$ }
-           \Comment Face is Non-Manifold
-           \State \Call{Register$\_$Transition$\_$Face}{$C_i$}
-        \EndIf
-      \EndFor
-   \EndFor
-\EndProcedure
-\end{algorithmic}
-\end{algorithm}
-
 \subsection{Mesh bifurcation and transition faces}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=.8\columnwidth]{chapter_nonmanifoldlevelsets/images/TransitionFaceNew2.pdf}
+\vspace*{-.1in}
+  \caption{Illustration of handling material bifurcations}{(Left) An example where material bifurcates at an edge in a
+    non-manifold Cartesian embedding. (Right) Level sets can only
+    store a single interface transition at an edge. In the
+    non-manifold level set bifurcations are explicitly recorded in
+    \emph{transition faces} that record a connectivity graph between all cells on
+    the left and right.}
+\vspace*{-.2in}
+  \label{fig:transition-face}
+\end{figure}
 
 The intent of our proposed level set data structure would be to store
 signed distance values on the \emph{nodes} of the embedding mesh
@@ -848,7 +812,7 @@ the Algorithm \ref{alg:NonmanifoldMeshGeneration} presented in
 Section~\ref{sec:nonmanifoldmeshgeneration} and
 Section~\ref{sec:stockembedding} cannot be allowed to
 indiscriminately collapse vertices (in Step 3) based solely on
-material continuity, if this yields a contradiction in the nodal
+material continuity if this yields a contradiction in the nodal
 signed distance values across connected elements. Thus, we introduce
 the concept of a \emph{transition face} which encodes connectivity
 between incompatible (in terms of the signs of nodal distance values)
@@ -868,6 +832,49 @@ either side, which would normally be lost once only nodal level set
 values are retained for each element.
 
 \subsection{Non-manifold level set mesh algorithm}
+
+
+\begin{algorithm}
+\caption{Non-Manifold Level Set Mesh Construction: This algorithm is a
+modification of the procedure to generate a basic non-manifold
+embedding (Algorithm \ref{alg:NonmanifoldMeshGeneration}) shown previously. The
+modfications here account for the addition of transition faces to
+track the interface near material bifurcations instead of simply
+collapsing vertices greedily.}
+\label{alg:NonmanifoldLevelsetMeshGeneration}
+\begin{algorithmic}[1]
+\Require Template Embedding Mesh $\mathcal{T}$, Material Description $\mathcal{M}$
+\Procedure{Construct$\_$NonManifold$\_$LevelSet$\_$Mesh}{}
+  \LineComment{Phase 1: Duplicate elements by connected components}
+  \ForAll{Elements in $\mathcal{T}$ : $E_i$}
+     \State $\mathcal{C}$ $\gets$ \Call{Connected$\_$Components}{$\mathcal{M}\cap E_i$}
+     \ForAll{ Components in $\mathcal{C}$ : $m_j$ }
+        \State $D_{i,j}$ $\gets$ \Call{Create$\_$Duplicate}{$T_i$ , $m_j$}
+     \EndFor
+  \EndFor
+  \LineComment{Phase 2: Reconnect or build transition faces}
+   \ForAll{Geometrically adjacent element pairs: $(E_k, E_l)$}
+      \State  $\mathbf{G}$ $\gets$ \Call{Initialize$\_$Bipartite$\_$Graph}{$\mathcal{D}_{k}, \mathcal{D}_{l},\{\}$ }
+      \ForAll{Duplicates from $E_k$ and $E_l$: $(D_{(k,q)}, D_{(l,r)})$}
+         \If{
+           \Call{Material$\_$Continuous}{$D_{(k,q)}$,$D_{(l,r)}$ } }
+            \State \Call{Insert$\_$Edge}{$\mathbf{G},D_{(k,q)},D_{(l,r)}$}
+         \EndIf
+      \EndFor
+      \ForAll{ Connected subgraphs of $\mathbf{G}$: $C_i$}
+        \If{ $\#$\Call{Edges}{$C_i$} = 1 }
+           \Comment Face is Manifold
+           \State \Call{Collapse}{\textit{Vertices on common face}}
+        \EndIf
+        \If{ $\#$\Call{Edges}{$C_i$} $> 1$ }
+           \Comment Face is Non-Manifold
+           \State \Call{Register$\_$Transition$\_$Face}{$C_i$}
+        \EndIf
+      \EndFor
+   \EndFor
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
 
 Using the transition face mechanism, we can now describe our new
@@ -944,7 +951,7 @@ follows:
 
 For example, Figure~\ref{fig:zero-width} demonstrates an elastic model
 being cut by a user-specified fracture surface. For this, we leveraged
-the method of Sifakis et al.~\shortcite{SifakDF:2007} which explicitly
+the method of \citet{SifakDF:2007} which explicitly
 subdivides each element of the template mesh $\mathcal{T}$ into
 disjoint polyhedra (a 2D analogue of this process is shown in the
 inset image to the right, where a ``cutting curve'' of line segments
@@ -996,12 +1003,12 @@ the distance value with the \emph{minimum} magnitude, across all
 elements incident to this node. Of course, no such reduction is
 performed on nodes connected via transition faces. Subsequently, we
 propagate the signed distance field in the interior of the object
-using the $O(n\log n)$ Fast Marching Method~\cite{Sethi:1998}, with
+using the $O(n\log n)$ Fast Marching Method~\citep{Sethi:1998}, with
 the only modification that this Dijkstra-type algorithm is allowed to
 propagate through transition faces in exactly the same fashion as
 through explicitly connected nodes.  While we only compute a scalar
 signed distance field, it would be straightforward to also compute a
-normal field \cite{KobbeBSS:2001} to support higher quality
+normal field \citep{KobbeBSS:2001} to support higher quality
 reconstructions.
 
 \begin{figure}
@@ -1081,7 +1088,7 @@ $\phi_{ijk}$ are the signed distance values at the nodes of $D_l$.
 This formula for the gradient can be used throughout the embedding
 mesh, and has been fully adequate for our collision processing
 application. However, should higher accuracy be desired, a higher
-order finite difference scheme~\cite{OsherF:2002} can be optionally
+order finite difference scheme~\citep{OsherF:2002} can be optionally
 substituted for cells exibiting manifold connectivity with all their
 neighbors.  It is known that the gradient of the level set function,
 i.e.\ the steepest ascent direction of the distance field, is a unit
@@ -1121,8 +1128,8 @@ present, then we assume that the interface lies \emph{exactly} at
 $\vec{x}_f$ and return this point along with the cell from which we
 entered the transition face as the result of the projection. We note
 that although this projection is approximate, the error is comparable
-with conventional, grid-based level sets, and perfectly acceptable for
-our collision handling scheme.
+with conventional, grid-based level sets, and is acceptable for
+collision handling.
 
 
 
@@ -1164,7 +1171,7 @@ method can resolve.
 %
 Finally, Figure~\ref{fig:zero-width} shows an example where a cube is
 partially sliced by six planes using the method
-of~\cite{SifakDF:2007}. This results in sixteen fingers which are
+of~\citep{SifakDF:2007}. This results in sixteen fingers which are
 pushed apart when squashed by a ball from the top. Note that a
 standard Cartesian grid-based level set cannot be used for resolving
 this structure irrespective of its resolution.
@@ -1212,22 +1219,6 @@ this structure irrespective of its resolution.
 \end{table}
 
 
-This table captures the performance impact of our collision
-methodology. The first column lists the computation times for
-generating the non-manifold level set mesh; we emphasize that this is
-a one-time precomputation cost, before dynamic simulation even
-starts. The following columns list the cost for each step of our
-Backward Euler implicit integration scheme, divided into the solution
-of the linearized equations, the cost of collision processing, and
-specifically the aggregate cost of all backtracing operations for
-projecting proxies to the object surface. It can be seen that the cost
-of collision processing is a minute fraction of the overall
-simulation. This stems from the fact that we do not require a history
-of collision-free states, and can take more aggressive steps than
-semi-implicit schemes that disallow
-interpenetration~\cite{BridsFA:2002}.
-
-
 \begin{figure}
   \centering
 \includegraphics[width=.91\textwidth]{chapter_nonmanifoldlevelsets/images/face-strip.pdf}
@@ -1243,6 +1234,22 @@ interpenetration~\cite{BridsFA:2002}.
 \label{fig:face}
 \vspace*{-.15in}
 \end{figure}
+
+This table captures the performance impact of our collision
+methodology. The first column lists the computation times for
+generating the non-manifold level set mesh; we emphasize that this is
+a one-time precomputation cost, before dynamic simulation even
+starts. The following columns list the cost for each step of our
+Backward Euler implicit integration scheme, divided into the solution
+of the linearized equations, the cost of collision processing, and
+specifically the aggregate cost of all backtracing operations for
+projecting proxies to the object surface. It can be seen that the cost
+of collision processing is a minute fraction of the overall
+simulation. This stems from the fact that we do not require a history
+of collision-free states, and can take more aggressive steps than
+semi-implicit schemes that disallow
+interpenetration~\citep{BridsFA:2002}.
+
 
 
 
