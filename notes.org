@@ -251,4 +251,23 @@
 
    Cite technologies / standards
 
-   
+** Revision Notes (July 3 2017)
+
+   8.1  
+
+   2nd paragraph - 
+
+   less defensive, shorter 
+
+   Intro to courts section should be less defensive.
+
+   Conclusion
+
+   Lessons Learned
+     
+     which peices of knowledge resulted from practical experience and
+     implementation? Highlight anything that was non-quite-as-predicted or suprising?
+
+     
+
+     

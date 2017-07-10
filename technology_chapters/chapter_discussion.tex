@@ -2,109 +2,285 @@
 \chapter{Discussion}
 \label{chp:discussion}
 
-The conclusion to any large body of work is difficult, to say the
-least. Nevertheless, it is important to reach some measure of
-knowledge at the end of day, ``the point'' to use a common
-vernacular. In the beginning of this document, a great deal of time
-was spent describing a framework for practical visual interactive
-systems. Later, these high level concepts were specialized into
-systems for authoring plastic surgery operations using physical
-simulation. A fair point can be raised that the subsequent chapters
-did little to further this topic in a direct and obvious fashion. So
-an astute reader is probably asking right now ``What was the point?''
-
-In an attempt to recover the vision of the forest through the
-metaphorical trees of technical details that have been presented thus
-far, this author would like to propose the following argument: The
-goal of creating virtual surgery systems is a valuable endeavor, but
-its value lies not only in the destination, but the path taken to get
-there. It is true that a plastic surgery \gls{pvis} was built and
-demonstrated to actual medical students. But that artifact, and the
-public recognition of it, is only part of the rewards from pursuing
-this path. Along the way, multiple new technologies and techniques
-were investigated, some of them were included in the surgical demo
-while others were not. It would be tempting to say that only the final
-result mattered, that time and effort were wasted on developments
-which were ultimately passed over for inclusion. This would be a
-mistake, however, but one born of understandable perspectives.
-
-Approaching a project as large and as complex as virtual surgery
-simulation, there is room for many disciplines. Medicine, computer
-science, mathematics, engineering, and even business expertise all
-have some part to play in the successful development and deployment of
-these systems. Unfortunately, it is all too easy to be trapped by one
-focus or another. Too much medicine and one can easily be lost in the
-almost infinite complexity of reality, too paralyzed by the details
-to get anything done. Too much mathematics can lead to equally
-unrealistic outcomes, where elegant equations diverge too much from
-the messy realities of biology or become too difficult to
-implement. And it is possible to have too much computer science, as
-well. Which is an odd statement to make in a defense of a computer
-science thesis, but important to understand.
-
-One of the dangers we face in simulation is that we can start to
-believe anything is possible. It may be hard to do, or require a
-complex dance of numerical techniques and new data structures, but
-ultimately anything that occurs in reality should be possible to
-simulate. This idea is seductive, it plays to the egos of researchers
-and while it can lead them to new discoveries and techniques, it often
-creates a bottomless pit of impracticality. This idea is related to a
-topic brought up in Chapter \ref{chp:motivation} on avoiding premature
-optimization. Optimization is generally thought of in simulation as
-the process where we work out how to solve a problem faster, or more
-correctly. But it can also refer to extreme focus, as in ``it was
-optimized to do X, at the cost of excluding Y''. It is this latter
-description which can be problematic, its practice responsible for
-generating solutions which are excellent, but so narrow and limiting
-that they become useless.
-
-This is the problem that we are faced with in building surgical
-simulations as computer scientists. We need to understand when to
-balance our unending desires for a better solution with the practical
-realities faced by other disciplines and each other. It was with this
-consideration in mind that the technologies pursued and presented in
-this document were chosen. It would have been easier, in some ways, to
-focus on one small aspect of surgery simulation, perhaps delivering a
-method to perfectly capture physical tissue responses or a better
-approach for modeling cutting tissue. And there is little doubt that
-these results would have been acceptable from a computer science
-research perspective. Instead, the work presented in this document
-focuses on a different idea: by providing a framework for fast,
-general simulation, by supporting this framework with multiple
-implementations catering to different needs, we can act as a stronger
-foundation for future research. To use a metaphor, a strong solid base
-of concrete rather than an elegant, but spindly tower of glass.
-
-However, this is a computer science dissertation, so it is worth
-spending some time discussing some of the technical takeaways from the
-techniques presented in previous chapters as we conclude this document.
+This final chapter of this dissertation will now cover some important
+remaining points that did not fit into the previous chapters. Included
+among them are salient ideas that derive from the accumulated
+knowledge picked up from the research that went into this document,
+known and discovered limitations of the methods previously described,
+and potential avenues for future work. The structure of this chapter
+is as follows: the next several sections will touch on themes and
+concepts that precipitate from the
 
 
+
+\section{Themes}
+
+\subsection{Vectorization and Performance}
+
+Despite support for vector instructions existing in consumer
+grade hardware since the late 1990's, developing applications that
+successfully and efficiently use this computation model is still
+difficult. This difficulty arises from multiple directions, which is perhaps a
+reason for its continual presence. The major challenges encountered
+during the work that led up to this dissertation can be grouped into
+several categories: design, abstractions, and debugging.
+
+\paragraph{Design}~ Successfully designing software to use vector
+instructions is unfortunately a complex task, touching many aspects of
+an algorithm from control flow to data layouts. In an ideal world, it
+would be nice to simply be able to specify algorithms and let a tool,
+such as a compiler, do the work of extracting out vector friendly
+parallelism, restructuring data structures and instructions
+accordingly. Unfortunately this level of intervention is currently
+beyond the automatic tools compilers provide developers and possibly
+always will be out of reach. At present, it remains a developer's
+responsibility to organize algorithms and data structures in
+vector-friendly ways, such as the blocking designs demonstrated in
+Chapter \ref{chp:parallelization}. And even with these invasive
+restructurings, modern compilers struggle to produce optimal vector
+code: minimizing the amount of register spills into main memory,
+inserting appropriate prefetching instructions, and other such
+optimizations can often must be completed by hand.
+
+\paragraph{Abstractions}~ At a level higher than designing a
+appropriate algorithm or data structure for vectorization, the task of
+making such designs portable to different vector architectures is also
+very challenging. This occurs both within closely related
+architectures, such as the multiple vector instruction sets in the x86
+family of processors, and between architectures, such as between Intel
+Phi accelerator cards and GPUs. The work demonstrated in Chapter
+\ref{chp:parallelization} on the vector library class was designed to
+assist with this problem, making it easier to port code between
+multiple vector instruction sets in the x86 architecture family. Other
+related work involving heterogeneous simulation of fluids
+\citep{LiuMAS:2016} presents an example of the other problem, where an
+abstraction layer needed to be created to communicate with Intel Phi
+accelerators, GPUs, and standard CPUs on an equal basis, along with
+multiple implementations of the same algorithm tailored for each
+architecture. It remains an open question on how to best support such
+a heterogeneous architecture environment, especially when high level
+abstractions can easily prevent exploiting architecture specific
+properties required for optimal performance.
+
+\paragraph{Debugging}~ Finally, once an design has been settled upon,
+the process of debugging vectored code can be extra challenging,
+compared to standard scalar implementations. Some of the reasons are
+due to the structure of the code itself: By using vector instructions
+we are generally breaking two commonly depended upon aspects of
+code. First, a vector instruction acts upon multiple, independent
+items of data at once. Because of this, identifying issues often
+requires tracing multiple concurrent computations at the same time, as
+they are impossible to separate during execution. Second, due to the
+fact that vector code is typically branch-free (or close to it), we
+can't depend on tracing different code paths as a indication of
+problems. Instead of being able to compartmentalize the process along
+isolated branches, we are forced to look at the entire algorithm as
+one continuous flow when diagnosing issues. All of these problems
+would be challenging enough, but vector instructions provide one last
+lingering complication during debugging. Discovered during the
+creation of the vector kernels in Chapter \ref{chp:parallelization},
+not all vector instruction sets, despite providing the same semantic
+instructions, will the same produce bit-identical output as each other
+for certain instructions. The error is generally low, small enough to
+not matter in most practical scenarios, but its existence makes
+checking numerical correctness difficult when exact answers cannot be
+relied upon.
+ 
+\subsection{Non-Manifold Data Structures}
+
+One of the big themes in this dissertation has been the use of
+data structures for non-manifold geometry. This approach has been
+rewarding, but not without drawbacks. Later in this chapter, specific
+limitations of the approach used for non-manifold level sets will be
+discussed, but the focus of this section is the general concept of
+non-manifold representations and closely related ideas. The major
+problem with non-manifold representations is that there is no real
+world analog with which developers can relate to. Real objects, unlike
+non-manifold geometry, can not self intersect - this is a non-physical
+concept that makes certain algorithms easier to develop. As a result,
+developers can struggle with these approaches as, unlike with many other
+topics in visual computing, they can be very difficult to visualize
+mentally.
+
+This problem is especially present as one transitions from two
+dimensional domains into three dimensional domains. Unlike other
+properties, such as those based on volume, whose complexity might only
+change from a quadratic scaling to a cubic scaling, topology is much
+more complex. As an example, consider the number of ways material can
+be connected in a non-manifold fashion across a hexahedral cell in two
+dimensions, if we think back to the idea of material continuity
+described in Chapter \ref{chp:nonmanifold}. To begin, at least one of
+the two shared nodes across the edge must share a material connection
+- which immediately leaves the other node to either be connected or
+not. If we restrict the question to representing non-overlapping
+geometry and simply those objects with bifurcations not resolvable by
+the grid, this leaves us with a total of two patterns: two cells
+attached across an edge to a third, each containing material on only
+one node, and its symmetric opposite. However, by introducing just one more
+dimension, changing edges to faces, the number of possible material
+patterns jumps to twenty nine symmetric pairs. The true danger is not
+that the potential patterns are hard to incorporate into an algorithm,
+but that a developer might miss them. The nature of these non-manifold
+geometric data structures, and associated algorithms, is that they are
+difficult to imagine. And what cannot be imagined is all too easy to
+overlook.
+
+\subsection{Software Engineering}
+
+A large amount of work completed in pursuit of this dissertation was
+dependent on good software engineering practices. From these
+experiences, we have distilled several important ideas that are worth
+further discussion. The first is a general statement on optimization
+strategy. Often algorithmic optimization is judged by comparison: by
+what percentage does algorithm A outperform algorithm B? Instead, we
+find that a more absolute approach is preferable, allowing us to have
+a better sense of how well our algorithms perform and, often equally
+important, how much performance is being underutilized. Our approach,
+given the general problem of operating over large discrete domains,
+has been to consider the reading and writing of data as the primary
+limiting factor in algorithmic performance. This is justified on the
+following ideas: first, no work can be completed before all the inputs
+have been read and all the outputs have been written, and second, we
+recognize that in most modern systems have a imbalance of memory
+bandwidth and computational bandwidth (one of the motivating factors
+in Chapter \ref{chp:macroblocks}), making data transfer generally the
+slowest component of any computation. By comparing the performance of
+an implementation to the theoretical time required to move its data
+set into and out of main memory\footnote{We assume, during this
+  computation, that we have perfect caching of all information read,
+  prefetching and other memory access optimizations. We are purely
+  interested in the amount of bytes read and written, divided by the
+  amount of memory bandwidth provided by the hardware platform in
+  question}, we can derive a measure of \textit{algorithmic
+  efficiency}. We find this method more useful, practically, than the
+traditional Big O notation used elsewhere, as it incorporates the
+implementation and hardware details that are meaningful in real-world
+settings. Especially since this method provided clear indications of
+whether or not a particular intervention we had taken was successful
+\textit{enough}.
+
+Related to this idea, the next software engineering advice we have
+found valuable during our work is that memory bandwidth is extremely
+important and generally becomes a major consideration sooner than
+people expect. This is somewhat at odds with conventional knowledge
+that faster processors (i.e. improved computational bandwidth) is the
+primary route to improved performance. Instead, our experiences have
+shown that it is very easy to run into bottlenecks in terms of memory
+transfers, even when not using vector instructions. For instance,
+since memory is loaded by cache line, runs of sixty four bytes,
+even scalar algorithms that load memory in unstructured ways can
+suffer from poor memory bandwidth utilization. Worse, these problems
+can be difficult to see - while analysis tools can report general
+issues, the causes are often subtle and structural in an implementation.  
+
+A final idea that we espouse is that understanding the particular
+nature of a problem can lead to more effective solutions than existing
+powerful, but generic, solutions. Our macroblock solver detailed in
+Chapter \ref{chp:macroblocks} is a great example of this
+philosophy. Existing algorithms for matrix reordering (which is
+recognized as NP-complete), such as Minimum Degree Ordering, designed
+for reducing fill-in, could not compete with our own reordering scheme
+because it was tailored for the specific sparsity pattern of our
+macroblocks. Similarly, despite attempting to use generic
+vectorization tools and libraries initially, we found that developing
+our own library, tailored for the kinds of computations we were
+performing, provided more control over the final generated machine
+instructions. While it might have been more expedient to use generic
+solutions, our benchmark application goals required more than these
+methods could provide. The trade-off between performance and
+development time was judged to be worth taking.
+
+\subsection{Domain Experiences}
+
+The experiences of working with domain experts during the research and
+development that went into the surgical simulation benchmark has left
+a lasting impression and driven home several important ideas. The most
+important among them is the sense that maintaining a broad attitude
+when approaching new projects is beneficial and in many cases
+necessary for their success. Had we restricted our research questions
+to simply pursuing theoretical improvements or algorithmic designs, we
+would never have arrived at a successful tool that was both usable
+and high performance. In the quest to support the needs of our domain
+experts, we saw no choice but to move down the levels of abstraction
+to acquire additional performance by tackling questions all the way
+down to the hardware level. Likewise, as we wanted a system that was
+flexible to be used in a number of real-world scenarios, we moved up
+from pure simulation goals and looked at challenges in user interfaces
+and network service design. Moreover, it was important to step outside
+of the field of computer science to learn about the concepts and
+problems that were important in the field of plastic surgery in order
+to effectively converse with our colleagues in this domain. What
+resulted was a broad covering of many areas, with perhaps less depth
+in any one area, which produced a successful end product, filled with
+both compelling research results and solid engineering accomplishments.
+
+\section{Limitations and Future Work}
+
+In the remainder of this chapter, we will explore some known
+limitations of the techniques presented in this document, along with
+some potential places where future work could provide improvements. 
+
+% During the development of our benchmark
+% application, we needed to be aware of several important social
+% concerns. These concerns range from who might be using the system to
+% larger issues of general policy. At first glance, the primary users of
+% a system to virtual author animations of surgical procedures would be
+% surgeons and, perhaps, medical students. But these are not the only
+% users we need to be concerned with. Additional important individuals
+% include system and facility administrators, who will be responsible
+% for maintaining and deciding the system's suitability,
+% respectively. In order for a system to be successful, all of these
+% people and their particular constraints need to be considered during
+% the design process.
+
+% In addition to who will be using the system, there is also
+% considerable variation on how it will be used. For instance, as a
+% potential training tool, do we assume that all users will be located
+% in first class medical schools, all equipped with personal
+% state-of-the-art workstations with which to run high quality
+% simulations? Or would our system be used by smaller schools in
+% developing countries, where getting expert instruction and learning
+% materials virtually might be very attractive? In reality, the
+% situation is probably somewhere on the spectrum between these
+% two. Availability of local computational resources, expert
+% instructors, and the number of students will all vary. As such, our
+% deployment efforts should be aware of these potential use cases.
+
+% At a larger scale, an important policy concern is privacy. Modern medical
+% practices work with intensely private data belonging to patients on a
+% daily basis. The risks with this data being leaked to the general
+% public are so severe that many countries have strict laws describing
+% how this data can be handled and transmitted. In the United States,
+% these rules are described by HIPAA (Health Insurance Portability and
+% Accountability Act). While it is beyond the scope of this document to
+% discuss the intricacies of these rules and software design, when we
+% consider deploying surgical simulators, which might be used with
+% actual patient data, we should keep HIPAA (and similar statutes) in mind.
 \section{Nonmanifold Level sets}
-\label{sec:discussion}
 
-Our pipeline for non-manifold level sets was been specifically created
-for self-collision processing in deformable body simulations. There
-are several diverse applications of the standard (manifold) level set
-concept such as representing geometry, tracking dynamically evolving
-interfaces, as a geometric query structure, etc. However, we believe
-that the current methodology may require application-specific
-embellishments to cater to broader tasks in modeling and simulation,
-beyond what was needed for our collision-oriented proof of concept.
-For example, when two dynamically evolving interfaces are brought
-together, they may either be allowed to merge (as is typical in fluid
-simulations) or overtake one another (e.g.\ the two separate branches
-of the lips during self-collision). Thus, application-specific
-semantics might be needed to use non-manifold level sets for dynamic
-interfaces.  Finally, we showed two examples (Figures
-\ref{fig:zplasty-and-net} and \ref{fig:zero-width}) where the
-simulated elastic model resulted from conceptual ``cutting''
-operations; in both cases we simply generated the non-manifold level
-set from the final, cut geometry. If such cuts were progressively
-enacted during simulation, our present implementation would sustain a
-significant recompuation cost to rebuild the non-manifold implicit
-representation. Incremental update following localized topology change
-will be a significant direction of future investigation.
+Our pipeline for non-manifold level sets in Chapter
+\ref{chp:nonmanifold} was been specifically created for self-collision
+processing in deformable body simulations. There are several diverse
+applications of the standard (manifold) level set concept such as
+representing geometry, tracking dynamically evolving interfaces, as a
+geometric query structure, etc. However, we believe that the current
+methodology may require application-specific embellishments to cater
+to broader tasks in modeling and simulation, beyond what was needed
+for our collision-oriented proof of concept.  For example, when two
+dynamically evolving interfaces are brought together, they may either
+be allowed to merge (as is typical in fluid simulations) or overtake
+one another (e.g.\ the two separate branches of the lips during
+self-collision). Thus, application-specific semantics might be needed
+to use non-manifold level sets for dynamic interfaces.  Finally, we
+showed two examples (Figures \ref{fig:zplasty-and-net} and
+\ref{fig:zero-width}) where the simulated elastic model resulted from
+conceptual ``cutting'' operations; in both cases we simply generated
+the non-manifold level set from the final, cut geometry. If such cuts
+were progressively enacted during simulation, our present
+implementation would sustain a significant recompuation cost to
+rebuild the non-manifold implicit representation. Incremental update
+following localized topology change will be a significant direction of
+future investigation.
 
 Currently, we do not extend the non-manifold level set values into a
 narrow band outside the interface because we used the same grid both
@@ -191,18 +367,18 @@ plastic surgery simulation tool.
 
 \section{Surgery Simulation Platform}
 
-We found that our participants were extremely comfortable with aspects
-of 3D visual navigation, even with the very rudimentary orientation
-that was provided. Most participants found the visual examples of
-procedures demonstrated to be very enlightening, with many of them
-commenting that this visual illustration was the most informative
-exposure they had for procedures they only knew from reference
-literature (most of them had not witnessed these procedures in the
-operating room). Almost no participant volunteered the lack of
-self-collision processing as an observed omission, until the
-interviewer explicitly asked them about this aspect (all
-demonstrations in our workshop entailed full suturing of wound
-closure). On the contrary, several participants identified
+We found that our participants who used our benchmark tool were
+extremely comfortable with aspects of 3D visual navigation, even with
+the very rudimentary orientation that was provided. Most participants
+found the visual examples of procedures demonstrated to be very
+enlightening, with many of them commenting that this visual
+illustration was the most informative exposure they had for procedures
+they only knew from reference literature (most of them had not
+witnessed these procedures in the operating room). Almost no
+participant volunteered the lack of self-collision processing as an
+observed omission, until the interviewer explicitly asked them about
+this aspect (all demonstrations in our workshop entailed full suturing
+of wound closure). On the contrary, several participants identified
 inaccuracies in the elastic behavior of the virtual tissues, finding
 that our models appeared to be more ``permissive'' to manipulation
 than real flesh tissue. An interface feature that was pointed out as
@@ -223,18 +399,38 @@ surgical tool was relatively modest. These limitations were a
 conscious choice to allow us to focus on the platform itself,
 balancing performance and extensibility. From a research standpoint,
 our biggest perceived challenge is improving the accuracy of the
-constitutive models for the biomaterials involved. Full self-collision
-support will be essential for extending our work to procedures that
-rely on contact, in addition to sutures, to model properly. We hope
-that the non-manifold level set approach from Chapter
-\ref{chp:nonmanifold} will prove to be a good solution for this
-problem. Finally, a large class of reconstructive procedures cannot be
-modeled with all incisions performed at the beginning of time; a
+constitutive models for the biomaterials involved. At the time of the
+demonstration, full self-collision support as per the work described
+in Chapter \ref{chp:nonmanifold} had not been integrated into the
+benchmark, but this support will be essential for extending our work
+to procedures that rely on contact, in addition to sutures, to model
+properly. Finally, a large class of reconstructive procedures cannot
+be modeled with all incisions performed at the beginning of time; a
 flexible topology change modeling system would be necessary to
 incorporate a seamless ability for topology change, concurrent with
 deformation.
 
-  
+A final note concerns an issue surrounding deployment: maintaining
+medical privacy. While supporting a surgical simulation tool that
+allows remote collaboration might be extremely helpful, it is
+important to keep in mind the implication of medical privacy
+regulations, such as the HIPPA (Health Insurance Portability and
+Accountability Act) laws in the United States. Maintaining compliance
+with these regulations while still being able to transmit potentially
+patient specific pathology data to remote servers will be challenging
+to reconcile. There are interesting open questions about how this
+might be performed, given that the simulation requires access to the
+geometry of the model being simulated. One saving grace is that the
+simulations are executed on an embedding lattice, which is only an
+approximation of a patient's tissue geometry. One might imagine a
+protocol that kept the actual geometry being manipulated local and
+transmitted some kind of obfuscated representation for remote
+computation. Or with potentially a dual simulation design, where the
+remote server would compute bulk updates on a generic tissue model and
+the local client would use these updates as a highly effective
+preconditioner for a higher detail, patient specific model. These are
+questions than should receive more attention before these systems are
+ready for production use.
 
 
 

@@ -1,65 +1,31 @@
 \chapter{Practical Deployment for Interactive Simulations}
 \label{chp:deployment}
 
-This final technical chapter focuses on the issues surrounding
-the deployment of Simulation Assisted Visual Systems (SAVS). The
-organization of this chapter is divided into two main parts. First, a
-short review of the higher level concerns regarding deployment, both
-from human and technology viewpoints. Second, the developmental
-history of our benchmark surgical application will be described,
-highlighting the choices, and their rationals, made along the way.
+This final technical chapter focuses on the issues surrounding the
+deployment of Simulation Assisted Visual Systems (SAVS). The
+organization of this chapter is divided into two main parts. First,
+there will be a short review of the high level technical concerns
+regarding deployment. Second, the developmental history of our
+benchmark surgical application will be described, highlighting the
+choices, and their rationals, made along the way.
 
-\subsection{Deployment Issues}
+\section{Deployment Issues}
 
-When considering the task of deploying a virtual surgery simulation,
-we will break the primary concerns into two, rather simplified,
-categories for the sake of discussion: social and technical.
+At a high level, there are many decisions involving technology that
+need to be addressed when deploying large systems. In this section,
+we'll briefly look at three of the most critical for our benchmark
+application: Remote architectures, Platforms, and Maintenance.
 
-\paragraph{Social Concerns}~ The primary social concerns of deployment
-relate to who will be using the system and why. At first glance, the
-who seems obvious: medical professionals. But many other groups might be interested
-in such a system. Medical students and patients come to mind as
-potential other users, for learning and pre-visualization
-tasks. Beyond the obvious users, we must also consider the people
-responsible for maintaining the system on a day-to-day basis. System
-administrators need to feel comfortable with the platform in order to
-gain their support.
-
-In terms of use cases, there are also many potential variations. For
-instance, do we assume that all users will be students in first class
-medical schools, all equipped with personal state-of-the-art
-workstations with which to run high quality simulations? Or would our
-system be used by smaller schools in developing countries, where
-getting expert instruction and learning materials virtually might be
-very attractive? In reality, the situation is probably somewhere on
-the spectrum between these two. Availability of local computational
-resources, expert instructors, and the number of students will all
-vary. As such, our deployment efforts should be aware of these
-potential use cases.
-
-A final social issue to be aware of is privacy. Modern medical
-practices work with intensely private data belonging to patients on a
-daily basis. The risks with this data being leaked to the general
-public are so severe that many countries have strict laws describing
-how this data can be handled and transmitted. In the United States,
-these rules are described by HIPAA (Health Insurance Portability and
-Accountability Act). While it is beyond the scope of this document to
-discuss the intricacies of these rules and software design, when we
-consider deploying surgical simulators, which might be used with
-actual patient data, we should keep HIPAA (and similar statutes) in mind.
-
-\paragraph{Technical Concerns}~ Keeping the social considerations
-in mind, we can now start to ask what technologies might work best for
-deploying surgical simulations. Probably the largest architectural
-question is whether we want a wholly local application or a networked
-application. The advantages of a local application include increased
-simplicity, potentially better access to client resources, and more
-control over data, as in relation to privacy concerns. Unfortunately,
-local applications are also completely dependent on local
-resources. For simulations, which are computationally intensive, a
-purely local application might be difficult to deploy at scale due to
-hardware costs. The addition of networking allows us to break many of
-these issues apart and distribute them more fairly across multiple
+\paragraph{Network Architectures}~ One of the largest architectural
+questions we need to answer is whether we want a wholly local
+application or a networked application. The advantages of a local
+application include decreased complexity, potentially better access to
+client resources, and more control over data. Unfortunately, local
+applications are also completely dependent on local resources. For
+simulations, which are computationally intensive, a purely local
+application might be difficult to deploy at scale due to hardware
+costs. The addition of networking allows us to break many of these
+issues apart and distribute them more fairly across multiple
 machines. In such an architecture, servers capable of large
 computations could service multiple clients, enabling larger
 deployments with less capital investment. On the other hand, network
@@ -68,34 +34,46 @@ locations with poor network connectivity, such as in the developing
 world, local installations might be more valuable, despite the up
 front costs.
 
-Platform support is another important concern. Currently there are
-many popular consumer facing application platforms. For the personal
-computer, Microsoft's Windows, Apple's OSX, and multiple distributions
-of Linux are all potential operating systems people might be
-running. On smaller devices, such as phones and tablets, Apple's iOS
-and Google's Android are extremely popular choices. Finally, the
-Internet itself, through the combination of HTML and Javascript on web
-browsers has become a de facto operating system platform for many
-people. Interestingly, all of these platforms, despite their
-differences, support the user interface technologies (user input, 2D
-and 3D rendering) required for surgical simulation
-applications. Accordingly, not supporting a cross-platform design
-has become a conscious choice, rather than an forced one.
+\paragraph{Platforms}~ Platform support is another important
+concern. Currently there are many popular consumer facing application
+platforms. The application platform, which is often simply the
+computer's operating system, defines what features and services are
+available to the application. We have many choices in choosing these
+platforms, depending on the device we which to run
+our simulation system on. For the personal computer, operating systems such as
+Microsoft's Windows, Apple's OSX, and multiple distributions of Linux,
+can fulfill the role of the application platform. On smaller devices,
+such as phones and tablets, Apple's iOS and Google's Android are
+extremely popular choices. Finally, the Internet itself, through the
+combination of HTML and Javascript on web browsers has become a de
+facto operating system for many people.
 
-One final technical issue is the concept of software updating. Despite
-the focus of deployment in this chapter, it is important to remember
-that there are plenty of ongoing research questions regarding
-simulation, surgical or otherwise. Investigations of these questions
-might result in new requirements for hardware or software
-environments. Inevitably, the simulation system we are attempting to
-deploy, and possibly its underlying platform, will need to be updated
-- whether to support a new simulation technique or to fix more mundane
-bugs. When this situation occurs, the method of deployment can greatly
-affect the ease of this process. Local applications can be hardest to
-manage under these circumstances, since they are by nature
-decentralized and might require wide scale hardware upgrades. Network
-based deployments, where the simulation is run on remote servers,
-offer more opportunities for more centralized upgrades.
+Interestingly, all of these platforms, despite their differences,
+support the user interface technologies (user input, 2D and 3D
+rendering) required for surgical simulation
+applications. Unfortunately, not all of these platforms (when
+considering the operating system and device combined) can support the
+computational requirements we require. This presents a curious
+situation where it is possible to develop cross platform user
+interfaces, but not necessarily cross-platform simulations. As we'll
+see later, dividing these responsibilities allows for more flexible
+architectural solutions.
+
+\paragraph{Maintenance}~ One final technical issue is the concept of
+updating and maintenance. Despite the focus of deployment in this
+chapter, it is important to remember that there are plenty of ongoing
+research questions regarding simulation, surgical or
+otherwise. Investigations of these questions might result in new
+requirements for hardware or software environments. Inevitably, the
+simulation system we are attempting to deploy, and possibly the
+underlying platform itself, will need to be updated - whether to support a
+new simulation technique or to fix more mundane bugs. When this
+situation occurs, the method of deployment can greatly affect the ease
+of this process. Local applications can be the hardest to manage under
+these circumstances, since they are by nature decentralized and might
+require wide scale hardware upgrades. Network based deployments, where
+the simulation is run on remote servers, offer more opportunities for
+more centralized upgrades.
 
 \section{System Architecture Comparisons}
 
@@ -107,12 +85,9 @@ to demonstrate how different system designs fit with different
 deployment concerns and how emerging technologies can support
 simulation deployments more easily than in the past.
 
-All of the following designs attempted to fulfill a common set of
-requirements. Some designs had additional features that were made
-available due to their particular implementation details. Those unique
-features will be discussed for each design in turn. While the
-following subsections may or may not mention all details, the following
-functionality was available in all designs:
+The core feature set for all implementations, which was defined
+through conversations with our domain collaborators including
+Dr. Court Cutting, is described below.
 
 \begin{enumerate}
 \item \textbf{Real-time physics simulation} 3D models of tissue were
@@ -158,12 +133,12 @@ functionality was available in all designs:
   \end{enumerate}
 
 
-  It should be stated that the majority of the tool's user interface
-  was designed by our domain collaborator, Dr. Court Cutting. His
-  initial system set the standard for how all subsequent iterations of
-  the tool allowed users to interact with hooks, sutures, and tissue
-  cutting. Over the course of development, these design principles
-  remained fixed, despite continuous replacement of implementations.
+  The tool's user interface was proscribed and prototyped by our
+  primary domain collaborator, Dr. Court Cutting. The choices made in
+  the process of designing the interface were made in response to the
+  background and familiarity to three dimensional modeling tools of
+  our expected user base, plastic surgeons.  
+
   
   % Before moving on to the specific details of each implementation,
   % some time should be spent breaking these systems down according to
@@ -188,7 +163,7 @@ functionality was available in all designs:
 
 \subsection{Traditional Desktop Application: Building the Monolith}
 
-The first design approach followed that of many traditional desktop
+The first design approach followed that of many traditional native desktop
 applications. All components of the application were compiled together
 as a single binary executable which ran on a single machine. This
 initial design used C++ as the development language, both for the
@@ -261,7 +236,7 @@ interface. This approach had many positive aspects:
  \end{enumerate}
 
  
- It was this last drawback that forced our development of the system
+ It was this last drawback that pushed our development of the system
  in a new direction: network based simulation.
 
  \subsection{Network Simulation: A Three-Tiered Architecture}
@@ -270,8 +245,8 @@ interface. This approach had many positive aspects:
  of network, or cloud, based simulation. The idea was straightforward:
  it would be an architecture where simulation would be performed on a
  remote machine and its results displayed on a local client. These
- initial forays into this idea were built on the previous client and
- used an interchange library from the Apache Project called
+ initial forays into this idea were built on top of the previous client and
+ used an network interchange library from the Apache Project called
  Thrift~\citep{ASF:2008--2014}. Thrift allowed the creation of multi-language bindings to be
  delivered over network as RPC (Remote Procedure Call) APIs. Initial
  experiments involved splitting the former unified application into
@@ -280,21 +255,21 @@ interface. This approach had many positive aspects:
  the network.
 
  Once this new organization was working, the frontend was rewritten as
- a web client, which used HTML, Javascript, and WebGL~\citep{webgl1.0} to replicate the
- functionality of the older C++ GUI. Further experimentation with this
- arrangement eventually showed a significant problem with Thrift's RPC
- style communication: namely it made developing smooth, lag-free user
+ a web client, which used HTML, Javascript, and WebGL~\citep{webgl1.0}
+ to replicate the functionality of the older C++ GUI. Further
+ experimentation with this arrangement eventually showed a significant
+ problem with Thrift: it made developing smooth, lag-free user
  interfaces somewhat tricky. The fault primarily laid with Thrift's
- RPC style conventions. By requiring the client to request new
- simulation updates, the addition of network lag contributed to the
- already time sensitive updates. This issue caused us to seek a new
- communication method, one that could support a ``push'' style
- communication. We finally settled on a newer Web standard:
- Websockets.
+ RPC style conventions. Under this communication style, a client would
+ continuously poll the server for new information. Under a multiple
+ client scenario, this method broke down, causing unnecessary network
+ traffic and lag.  This issue caused us to seek a new communication
+ method, one that could support a ``push'' style communication. We
+ finally settled on a newer Web standard: Websockets.
 
  The Websocket standard~\citep{rfc6455} is a full-duplex communication protocol
  available in HTML5. The standard defines a custom protocol over TCP, where
- messages can be send from either end and are guaranteed to
+ messages can be sent from either end and are guaranteed to
  arrive in order on the other side. The primary benefits of the
  protocol are easy bidirectional communication and low overhead. Since
  the protocol uses a custom TCP-based protocol instead of HTTP, it can
@@ -379,7 +354,7 @@ interface. This approach had many positive aspects:
  \end{enumerate}
 
 
- However, no platform is perfect. Like the previous monolithic design,
+ However, no design is perfect. Like the previous monolithic design,
  the three-tiered design had several drawbacks:
 
 
@@ -401,9 +376,9 @@ interface. This approach had many positive aspects:
      biological scenes can require significant amounts of network
      bandwidth, or they risk causing unacceptable lag for clients.
 
-     \item \textbf{Privacy Risks} As mentioned earlier, transmitting
-       patient specific data over the network can introduce privacy
-       dangers that run afoul of legal restrictions.
+     % \item \textbf{Privacy Risks} As mentioned earlier, transmitting
+     %   patient specific data over the network can introduce privacy
+     %   dangers that run afoul of legal restrictions.
 
      \item \textbf{Loss of Platform Control} While using a web client
        provides a large amount of cross platform support, it places

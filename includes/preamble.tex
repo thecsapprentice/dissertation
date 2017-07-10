@@ -173,7 +173,7 @@
 
 \usepackage{ifthen}
 
-\providecommand\pdfforprinting{true}
+\providecommand\pdfforprinting{false}
 
 \ifthenelse{\equal{\pdfforprinting}{false}}{%
 \newenvironment{myrotatedtable}{%
@@ -185,11 +185,25 @@
   \endlandscape%
   \restoregeometry%
 }%
+\newenvironment{rotatedfigure}{%
+  \newgeometry{margin=1cm}%
+  \landscape%
+  \begin{figure}%
+  }{%
+  \end{figure}%
+  \endlandscape%
+  \restoregeometry%
+}%
 }{%
 \newenvironment{myrotatedtable}{%
     \begin{sidewaystable}%
 }{%
-    \end{sidewaystable}
+    \end{sidewaystable}%
+}%
+\newenvironment{rotatedfigure}{%
+  \begin{sidewaysfigure}%
+  }{%
+    \end{sidewaysfigure}%
 }%
 }%
 

@@ -480,7 +480,6 @@ operators in the interface of these classes to allow them to be used
 in algebraic expressions regardless of the encapsulating vector
 width. Ultimately we use them to construct macroscopic kernels of the
 form:
-
 \begin{shaded}
 \texttt{template<class \changed{scalar\char`_arch}{ Tw},class T\char`_DATA\oldtext{=void}>}\\
 \texttt{void Add\char`_Force\char`_Differential(}\\
@@ -489,8 +488,10 @@ form:
 \texttt{\hspace*{2em}const T\char`_DATA (\&dPdF)[12],}\\
 \texttt{\hspace*{2em}T\char`_DATA (\&df)[3][8]);}
 \end{shaded}
+These kernels are broken out in Figures \ref{fig:KernelUPBS},
+\ref{fig:KernelAF}, and \ref{fig:KernelAFD}.
 
-\vspace*{-.1in} In this paradigm, we have separated the programmatic
+In this paradigm, we have separated the programmatic
 data width (\oldtext{encapsulated by }type
 \texttt{T\char`_DATA}\newtext{, which could be \texttt{float}, for
   scalar code that computes forces on individual cells, or
@@ -507,7 +508,6 @@ blocks containing 16 cells each (e.g. blocks shaped like
 $4\times 2\times 2$ grid cells). 
 
 
-
 \subsection{Performance Results}
 
 This particular strategy for performance optimization for lattice
@@ -519,6 +519,151 @@ anisotropic active musculature. Detailed timings, including
 time taken at the individual kernels of our solver, can be seen in Table
 \ref{fig:TimeResultsTable}.
 
+
+% \begin{figure}[t]
+% \centering
+% \caption{\textbf{Classification of Forces:} The energy, $\mathbf{E}$, of deformable objects in our framework can be expressed as a summation of independent components. Additionally, we classify these components' related forces into general categories.}
+
+% $$
+% \mathbf{E} = \mathbf{E}_{iso} + \mathbf{E}_{aniso} + \mathbf{E}_{stab} + \mathbf{E}_{con} + \mathbf{E}_{coll}
+% $$
+
+% \scalebox{1.5}{$\Downarrow$}
+
+% \begin{forest}
+% [All Forces
+% [Elasticity
+% [Isotropic]
+% [Anisotropic]
+% [Stabilization]
+% ]
+% [Interactions
+% [Constraints
+% [Unilateral]{\draw[->,dashed] ()--++(0pt,-.5cm)--++(3.33cm,0pt) to (rb);}
+% [Bilateral]{\draw[->,dashed] () --++(0pt,-.75cm)--++(3.14cm,0pt) to (self);}
+% ]
+% [Collisions
+% [Rigid Body,name=rb]
+% [{\color{gray}Self},rectangle,draw,gray,name=self,edge={dashed,gray}]
+% ]
+% ]
+% ]
+% \end{forest}
+% \label{fig:classification}
+% \end{figure}
+
+\begin{rotatedfigure}
+  \centering
+  \caption{Kernel Components for \textsc{Update Position Based State}}{Diagram
+    demonstrating the sub-kernel components for the \textsc{Update Position
+    Based State} kernel. This kernel is executed once per Newton step
+    and computes the deformation gradient $\bm F$, the Singular Value
+    Decomposition  of $\bm F$, and the stress tensor $\mathcal
+    T$, as of \citet{TeranSIF:2005}, of the current configuration. These
+    values can be reused in subsequent force differential computations as
+    they do not change between Newton steps.}
+  \vspace {.5cm}
+  
+  \begin{forest}
+    for tree={
+      child anchor=west,
+      parent anchor=east,
+      grow'=east,
+      text width=4cm,%
+      draw,
+      anchor=west,
+      edge path={
+        \noexpand\path[\forestoption{edge}]
+        (.child anchor) -| +(-5pt,0) -- +(-5pt,0) |-
+        (!u.parent anchor)\forestoption{edge label};
+      },
+    }
+    [Update Position Based State
+    [Unweighted Gradient]
+    [Singular Value Decomposition]
+    [Penalty Measure Gradient]
+    [Isotropic Stress Derivative
+    [Rotated Stress Derivative]
+    ]
+    ]
+  \end{forest}
+  \label{fig:KernelUPBS}
+\end{rotatedfigure}
+
+\begin{rotatedfigure}
+  \centering
+  \caption{Kernel Components for \textsc{Add Force}}{Diagram demonstrating the
+    sub-kernel components for the \textsc{Add Force} kernel. This kernel
+    produces nodal forces due to a single cell's nodal deformation. It
+  is called once per Newton step as the right hand side of the update
+  expression \ref{equ:newtonupdate}.}
+
+\vspace{.5cm}
+  
+  \begin{forest}
+    for tree={
+      child anchor=west,
+      parent anchor=east,
+      grow'=east,
+      text width=4cm,%
+      draw,
+      anchor=west,
+      edge path={
+        \noexpand\path[\forestoption{edge}]
+        (.child anchor) -| +(-5pt,0) -- +(-5pt,0) |-
+        (!u.parent anchor)\forestoption{edge label};
+      },
+    }
+    [Add Force
+    [Unweighted Gradient]
+    [Matrix Times Transpose]
+    [Piola Kirchhoff Stress Tensor
+    [Volume Preservation Deviation]
+    ]
+    [Unweighted Accumulation]
+    ]
+  \end{forest}
+  \label{fig:KernelAF}
+\end{rotatedfigure}
+
+\begin{rotatedfigure}
+  \centering
+
+  \caption{Kernel Components for \textsc{Add Force Differential}}{Diagram
+    demonstrating the sub-kernel components for the \textsc{Add Force
+    Differential} kernel. This kernel is called repeatedly during each
+    Newton step, acting as the effect of multiplying by the stiffness
+    matrix $\bm K$. This kernel consumes the deformation gradient, SVD
+    components, and the stress tensor $\mathcal T$ produced from the Update
+    Position Based State kernel.}
+
+  \vspace{.5cm}
+  
+  \begin{forest}
+    for tree={
+      child anchor=west,
+      parent anchor=east,
+      grow'=east,
+      text width=4cm,%
+      draw,
+      anchor=west,
+      edge path={
+        \noexpand\path[\forestoption{edge}]
+        (.child anchor) -| +(-5pt,0) -- +(-5pt,0) |-
+        (!u.parent anchor)\forestoption{edge label};
+      },
+    }
+    [Add Force Differential
+    [Unweighted Gradient]
+    [Matrix Times Transpose]
+    [Pressure Force Differential]
+    [Stress Tensor Differential]
+    [Matrix Transpose Times]
+    [Unweighted Accumulation]
+    ]
+  \end{forest}
+  \label{fig:KernelAFD}
+\end{rotatedfigure}
 
 \renewcommand{\arraystretch}{1.0}
 

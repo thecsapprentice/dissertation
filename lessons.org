@@ -1,0 +1,201 @@
+* Gridiron
+** Instruction sets are not identical
+
+   Despite multiple instruction sets, such as SSE and AVX, providing
+   the same functional operations, internal optimizations can create
+   discrepensies in the floating point representation of the
+   results. While this error is small, it makes comparing results
+   between instructions sets, which should have been trivial, more
+   challenging as one must differentiate between error from bugs vs
+   error from the hardware.
+
+** Debugging vectorized code is tricky
+
+   Attempting to trace issues in vectorized code is much more
+   difficult than in standard scalar code. First, values are ganged
+   together, often leading to situations where one channel is wrong
+   and the other channels are correct. This is rarely caused by
+   inproper vector code - that would generally cause all channels to
+   be invalid, but by incorrect input that is hard to detect before
+   hand. Available tools for analyizng this issue are virtually
+   non-existent. I believe this is because most developers don't use
+   extremely large vector kernels, sticking with shorter, spot
+   optimizations. Second, one major technique normal debugging
+   follows, control flow tracing, is typically unavailable to vector
+   debugging. Due to the reliance on simultanious execution and
+   blending, there are no branches to check against. One needs to
+   actually trace all values across all channels to see if any blend
+   has gone wrong. Again, there exist few, if any, tools that really
+   help with this process.
+
+   Floating point code bitwise equivalence vs minute errors (all
+   reasons - rounding modes, order of operations (different in
+   reference vs vector code ). Some cpu functions are accurate only to
+   some precision (we don't care because we are using the results for
+   a approximate newton iteration anyway or recover accuracy in other ways)
+
+** Memory bandwidth matters sooner than one expects
+
+   It is remarkable how quickly and easily one can exhaust the
+   available memory bandwidth of a system as threading and
+   vectorization are inserted into an algorithm. During the process of
+   writing the force kernels, it seemed easy to suggest the idea of
+   blocking to organise data, but that idea almost instantly placed
+   major constraints on memory bandwidth. What seemed like the hard
+   task, using vectorization to improve computatational throughput,
+   was quickly shown to not be the true bottleneck in the design.
+
+   Scalar instructions vs cache lines
+
+   very easy to hit the limits, hard to see the problem
+
+** Developing clean abstaction layers for accelerators is hard
+
+   Accelerators are very powerful computational engines, combining
+   compute and memory bandwidth, but using them is not easy. There are
+   two major difficulties in trying to abstract them for easy
+   replacement: Communication and Programming model. Every accelerator
+   seems to come with its own quirks of communication. GPUs use CUDA
+   for sending data across, while Phi cards have several methods,
+   ranging from a low level TCP style line protocol, to more
+   traditional approaches, such as we used, like MPI. Trying to build
+   an interface layer for all of these methods while not sacrificing
+   additional performance is extremely tricky. But the internal nature
+   of their computation makes everything more difficult. It is nearly
+   impossible to write one kernel for every accelerator. Even higher
+   level librries like OpenCL don't work well, because they hide
+   important details like prefetching, memory management, and vector
+   instructions required for optimial results. Each device needs its
+   own specific codebase.
+
+   
+** Template/compiler optimizations are useful, but counterbalanced by the difficulty in writing them
+
+   Building compiler optimized sections of code, by using templates to
+   elude unneeded sections is a powerful technique, but it is tricky
+   to pull off easily and clearly. Template constructs are often
+   difficult to understand, as they are a form of functional
+   programming whose syntax is adversely affected by being primarily
+   designed for expressing data types. The tradeoffs between writing
+   maintanable code and writing performant code are easily seen when
+   attempting to build these compile time constructs.
+
+** Web technologies have progressed a long way
+   
+   Web technologies have progressed greatly. Beyond obvious display
+   improvements: WebGL and other GPU optimizations, web technologies
+   now include a selection of APIs typically restricted to native
+   applications: sockets and threading. These allow for more
+   responsive and more flexible *applications*, which can have
+   complete control over their communication and can more effectively
+   use the computational resources of the host. The work completed
+   here has only barely touched what can be done in this space.
+
+
+** Compilers are not great at auto-vectorization, manual intervention is still required
+
+   Compilers have come a long way in generating optimized code, but
+   vector code generation is still not good enough. The major problem
+   is that vector code requires too many large scale changes (SOA,
+   structured memory, etc..) for a compiler to successfully work
+   automatically. And even if code is structured in a vector friendly
+   format, the current generation of compilers is still barely able,
+   if at all, capable of generating long stretches of vector code
+   without spilling registers unnessesarily or taking other
+   unoptimized choices.
+
+
+* Non-Manifold Levelsets
+** Simplest Solutions are sometimes the best ones
+
+   We spent a long time trying to develop a solution to deal with the
+   nodal value discrepencies near bifurcations. We had many complex
+   ideas, ranging from virtual cells, to multivalued nodes (I don't
+   even remember them all). But the best solution we decided, was the
+   simpler one: just record the available paths. Let the algorithms be
+   smarter and make the choice about what to do, instead of encoding
+   everything into the data structure.
+
+   Focus on need, not extraneous (but seemingly useful)
+   details. Surface reconstruction 
+
+** Nonmanifold geometry is useful, but hard to work with
+
+   Nonmanifold geometry is inheriently non-physical. There are no
+   analogs in our reality for objects existing in self intersecting
+   states. Therefore, it is often extremely difficult to understand
+   the fundamental behavior of non-manifold data structures, despite
+   their usefulness in recording information. But in this case, the
+   difficulties are justified, in my opinion. The benefits that
+   non-manifold representations provide over other ideas such as
+   increased refinement or adaptivity in terms of lower storage costs
+   and the ability to capture more examples of geometry, make them
+   worth it.
+
+** Moving from concept to execution is harder than it looks
+
+   It was easy to say: oh, just do a level set on a non-manifold
+   grid. But the process of taking that idea to a working data
+   structure was extremely challenging. And in a way that previous
+   ideas were not. Hybrid grids felt like a serious engineering
+   challenge: how do we store/compute on it without paying obscene
+   memory costs? Macroblocks was closer, in that there was lots of
+   checking to see if what we wanted to do was technically
+   feasible. But nonmanifold levelsets was something new - we had no
+   idea if the concept would even work, or how it would work in the
+   final design. 
+
+** Challenges scale nonlinearily from 2d to 3d
+
+   This was visible in other projects too, but especially in
+   non-manifold levelsets. Its easy to see how some things scale
+   differently between dimensions: Cubic vs quadratic scaling in space
+   requirements, for instance. But the additional topology options
+   mean that there are often simply more situtations and cases to be
+   considered that never even show up in lower dimensions. In
+   non-manifold levelsets, this was expressed in how bifuractations
+   worked, but also in how we computed our material component checks -
+   the math was simply more complex, with more potential situations (
+   that were not simple scalings of 2d, but wholy new problems) to
+   deal with.
+
+   Danger! - Can't know you are missing test cases if you can't imagine
+
+** Volumetric rasterization technolgies still have a lot to be desired
+
+   It may sound odd, but represeting volumetric objects discretely has
+   a lot to be desired. Rasterization with hexahedra is okay, but has
+   problems with representing small features or precise
+   boundaries. Conforming tetrahedra are better here, but suffer from
+   numerical inaccuracies when attempting to perform intersection
+   tests or cutting. Generation code for this representation is also
+   tricky. Balancing element size and shape to produce a model without
+   degeneracies and still have it match arbitrary shapes is still
+   challenging. 
+
+* Macroblocks
+** Powerful generic techniques can be beat by understanding the specifics of your problem
+
+   Taking time to understand the specific nature of the problem, such
+   as the structure of the macroblock matrix, is worth it. Applying
+   generic factorization and reordering techniques would never have
+   gotten us to the compactness we needed to actually fit the
+   macroblock into first level cache, let alone structure it in a
+   fashion that allowed us to exploit as much internal parallelism as
+   we did. 
+
+** Optimization - Speedup vs. Peek Efficiencey
+
+  data access
+  vertification
+  Equivient operations
+
+** Broadness - A good thing?
+
+   YES!
+
+** Limitations
+
+   Knowingly tossing ideas by choosing a path
+
+   Not currently catering to, but we could see a potential method

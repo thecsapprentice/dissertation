@@ -1,33 +1,36 @@
 \chapter{Introduction}
 
-This document describes a series of techniques and designs dealing
-with the topics of modeling, discretization, and simulation in the
-context of deformable solids and data structures related to regular
-Cartesian grids. This general design was chosen for its ease of use
-and for its potential for performance optimizations. In order to gain
-these benefits, this document describes a series of contributions
-which enable desirable simulation capabilities within this design
-regime.
+This document describes a set of techniques and design choices
+dealing with the processes of modeling, discretization, and simulation
+of elastic deformable solids on data structures related to regular
+Cartesian grids. The decision to use Cartesian grid representations
+for deformable bodies was made due to their ease of use and the
+substantial potential for performance optimizations. This document
+describes a series of contributions which enable the joint support of
+a number of desirable simulation capabilities within this design
+regime, and allow the performance potential to materialize in the
+context of real-world applications.
 
-We use animations of reconstructive plastic surgery as the external
-motivation for this work. This domain was used to define the scope of
-the research presented in this document and the virtual surgery
-systems developed within were designed as testing grounds for the
-algorithmic and data structure contributions described in later
-chapters.
+We use the task of crafting instructional animations of reconstructive
+plastic surgery as the driving application and source of motivation
+for this work. This domain was used to define the scope of the
+research presented in this document and the virtual surgery systems
+developed within were leveraged as testing grounds for the algorithmic
+and data structure contributions described in this dissertation.
 
-Finally, solutions were explored for deploying these testing
-platforms, demonstrating practical feasibility beyond pure computer
-science research.
+Finally, this dissertation explores the practical challenges of
+deploying these algorithmic contributions in the context of a
+practical and usable interactive system, addressing engineering and
+deployment issues that extend beyond the details of the constituent
+core algorithms.
 
 \section{Thesis}
 
-
-This dissertation aims to support the following statement: Creating
+This dissertation aims to support the following statement: Creating 
 virtual simulators for craniofacial reconstructive plastic surgery has
 reached the point of technical feasibility. This capability is
 demonstrated using craniofacial reconstructive surgery as the
-benchmark; both for its intrinsic value and the degree of complexity
+benchmark, both for its intrinsic value and the degree of complexity
 and challenges it exemplifies.
 
 In pursuit of this goal, this document will describe how current
@@ -44,11 +47,11 @@ exposes.
 Physicians have been seeking better methods to capture human anatomy
 and function, both normal and pathological, for the purpose of healing
 since the earliest days of modern surgical theory. From the anatomical
-drawings of De Vinci, to more modern practices of constructing
+drawings of Da Vinci, to more modern practices of constructing
 realistic simulacra, surgeons, and their students, have been pursuing
 tools that allow them to practice their skills before operating on
 real patients. Existing research shows the benefits of engaging in
-these practice sessions in a virtual non-invasive
+these practice sessions in a virtual, non-invasive
 setting~\citep{GallaRCHFMSS:2005}. Practiced surgeons make fewer
 mistakes and can use preparation sessions to plan new approaches
 safely.
@@ -66,23 +69,26 @@ advantages over purely physical training environments, why are
 surgeons still using aids such as diagrams, physical mannequins, and
 cadavers?
 
-The part of the answer is that they often lack any better
-alternatives. Performing surgery is a complex task involving a
-combination of dexterous and cognitive, often spatial reasoning,
-skills~\citep{GallaRCHFMSS:2005}. Tools that support all of these areas
-are difficult to get right, and most attempts to build technological
-aids have focused on subsets of the skills required. Historically,
-these have been the dexterous skills, which many authors have tried to
-solve with a variety of haptic simulation
-techniques~\citep{MendoL:2003, LindbT:2007}. While these surgical
-simulation philosophies are useful, and have been used in commercial
-products~\citep{SUSAC:2002--2014}, they don't really meet the need of
-training cognitive skills. This need varies across surgical
-specialties - reconstructive plastic surgery, which is the focus of this document,
-requires the surgeon to have internalized geometrical intuitions in
-order to manipulate tissue in the three dimensional space of the human
-body. It is this lack that has kept traditional, less technological
-aids as the core of many plastic surgery training programs.
+Part of the answer involves the reality that better,
+technology-assisted alternative educational aids are largely scarce
+and mature solutions are narrowly scoped.  Performing surgery is a
+complex task involving a combination of dexterous and cognitive, often
+spatial reasoning, skills~\citep{GallaRCHFMSS:2005}. Tools that
+support all of these areas are difficult to get right, and most
+attempts to build technological aids have focused on subsets of the
+skills required. Historically, these have been the dexterous skills,
+which many authors have tried to solve with a variety of haptic
+simulation techniques~\citep{MendoL:2003, LindbT:2007}. While these
+surgical simulation philosophies are useful, and have been used in
+commercial products~\citep{SUSAC:2002--2014}, they don't really meet
+the need of training cognitive skills. This need varies across
+surgical specialties - reconstructive plastic surgery, which is
+highlighted in this document, requires the surgeon to have
+internalized geometrical intuitions in order to manipulate tissue in
+the three dimensional space of the human body. The lack of tools
+supporting this type of knowledge has kept traditional, less
+technological aids as the core of many plastic surgery training
+programs.
 
 In comparison to internal surgery, plastic surgery is challenged by the
 practical reality that the results of any operation will be visible to
@@ -97,28 +103,33 @@ as correctly display the outcomes.
 
 \paragraph{General Material Support} We present techniques for
 accommodating general classes of materials, including nonlinear
-materials and anisotropic materials such as muscles, in the context of
-a Cartesian grid-based discretization. This feature is supported
-despite the challenge of simultaneously supporting additional
-simulation constraints such as parallelism, topology change, and collision handling.
+mechanical properties, and anisotropic media such as muscles, in the
+context of a Cartesian grid-based discretization. This generality is
+supported despite the challenge of simultaneously accommodating
+additional simulation constraints such as parallelism, topology
+change, and collision handling.
 
-\paragraph{Hybrid Grids for Non-Manifold Embedding} We demonstrate a
-augmented data structure that enables the resolution of thin, sub-voxel material features
-within an otherwise standard hexahedral grid embedding context. We do
-this by combining implicit topology and explicit topology together,
+\paragraph{Hybrid Grids for Non-Manifold Embedding} We demonstrate an
+augmented data structure that enables the resolution of thin,
+sub-voxel material features within an otherwise standard hexahedral
+grid embedding context. This is accomplished by combining the implicit
+topology of a grid and the flexibility of an explicit mesh structure,
 creating a hybrid data structure that has large performance potential
-and modeling flexibility. We demonstrate this data structure in the
+and modeling versatility. We demonstrate this data structure in the
 context of surgical operations with complex, thin incisions created by
 user input.
 
-\paragraph{SIMD Parallelization Framework} To relieve the burden of
-writing streaming, vectorized numerical kernels, we developed a
-framework for writing architecture independent, SIMD structured
-kernels while presenting a API resembling scalar-style code. We
-demonstrated this framework by constructing kernels for elastic
-simulations, showing how even large kernels can be successfully
-vectorized without introducing inefficiencies from automatic compiler
-vectorization.
+\paragraph{A Thread- and Vector-conscious Parallelization Framework}
+We developed a programming paradigm and an object-oriented code
+infrastructure for bridging the performance divide between
+hand-optimized numerical kernels and what compiler optimizations were
+able to provide in the context of complex simulation tasks. This
+framework drastically simplifies the developer's effort, generating
+highly optimized SIMD code while presenting a API resembling
+scalar-style semantics. We demonstrated this framework by constructing
+kernels for elastic simulations, showing how even large kernels can be
+successfully vectorized without suffering inefficiencies of automatic
+compiler vectorization.
 
 \paragraph{Non-Manifold Level Sets} We propose a data structure for
 discretizing a level set over a non-manifold domain, allowing the
@@ -127,110 +138,134 @@ regions. Additionally, we provide algorithms for important tasks, such
 as locating the nearest surface location from an interior point,
 enabling the use of the data structure in self collision scenarios for
 elastic simulation.
-
+ 
 \paragraph{Macroblock Solver Design} We designed a hybrid
 iterative-direct solver for elastic materials defined over hexahedral
-grids, which divides the domain into self-contained macroblocks. The
-interior of each macroblock is solved in a direct fashion, using a
-cache-friendly, hierarchical factorization approach, while the
-interfaces between macroblocks are solved iteratively. This technique
-provides excellent convergence for non-linear materials, reminiscent
-of direct solvers, while remaining fast and tuneable, like iterative
+grids, which divides the domain into self-contained abstractions of
+simulation elements, labeled macroblocks. The interior of each
+macroblock is solved in a direct fashion, using a cache-friendly,
+hierarchical factorization approach, while the interfaces between
+macroblocks are solved iteratively. This technique provides excellent
+convergence for non-linear materials, inheriting robustness properties
+of direct solvers, while remaining fast and tunable, like iterative
 solvers.
 
-\paragraph{Deployment Methodology for Remote Simulation} To support
-use cases such as classrooms or remote collaborations, we developed a
-prototype surgical simulation system that supports high performance
-local and remote deployments. By employing modern web technologies, we
-are able to support cross-platform, multi-user shared simulation
-environments over the network. This approach provides good scalability
-across multiple clients, reduced infrastructure costs, and better long
-term maintenance options.
+\paragraph{Deployment Methodology for Remote Simulation} In order to
+facilitate easy and cost-effective deployment and collaboration, we
+developed a prototype surgical simulation system that combines
+lightweight front-end clients with specialized remote simulation
+servers. By employing modern web technologies, we are able to support
+cross-platform, multi-user shared simulation environments over the
+network. This approach provides good scalability across multiple
+clients, reduced infrastructure costs, and better long term
+maintenance options.
 
-\section{Carteisian Grids as Model Representations}
+\section{Cartesian Grids as Model Representations}
 
-Capturing the shape of deformable models has been accomplished by a
-multitude of methods, including tetrahedral meshes, point clouds,
+Capturing the shape of deformable models in visual computing
+applications has been accomplished in conjunction with a variety of
+geometry representations, including tetrahedral meshes, point clouds,
 cages, and grids. This last method, which includes Cartesian grid
 representations, has a number of benefits, including a simple and
-procedurally defined topology along with great potential for
-performance optimizations. Yet, these advantages do not come free:
+procedurally defined topology along with an excellent potential for
+performance optimizations. Yet, these advantages come with
+important caveats:
 \begin{itemize}
-  \item Grid based representations are only an approximation of the
-    object's surface.
-  \item We often wish to capture objects with less regularity in shape
-    and behavior than the structure of the grid allows, particularly in
-    anatomical scenarios.
-  \item Changing the topology of the model fundamentally breaks the
-    regular topology of the grid data structure.
-  \item Current methods for high performance collision handling are
-    not designed for grid based representations. Moreover, there
-    remains a challenge in turning the potential for performance in
-    grid based representations into realizable gains.
-  \end{itemize}
-  Handling all of these concerns simultaneously adds to the difficulty
-  of the task. The work presented in this document describes how these
-  issues can be addressed. In particular, techniques for infusing
-  additional topological flexibility into grid representations,
-  allowing them to effectively capture thin, sub-cell material, while
-  not giving up on performance opportunities will be covered in
-  Chapters \ref{chp:nonmanifold} and \ref{chp:parallelization}. In
-  order to capitalize on the performance potential, the regularity of
-  the grid based representation will be used to build efficient
-  streaming kernels in Chapter \ref{chp:parallelization}. Taking the
-  abstraction higher, in Chapter \ref{chp:macroblocks}, we will show
-  how multiple cells in the grid can be ganged together, creating
-  larger macroblocks for improved performance and to more
-  effectively capture nonlinear behaviors.
+\item Grid based representations form only an approximation of the
+  object's surface.
+\item Although the use of grids provides regularity at the data
+  structure level, irregularity can also manifest in other ways, such
+  as the heterogeneity of material properties, especially in models
+  inspired by anatomy.
+\item Many of the ways that model topology might be required to change
+  in scenarios of cutting or fracture can jeopardize the regular
+  implicit topology of the grid data structure.
+\item Several established methods for collision handling are not
+  optimized for grid-based representations, and even less so for the
+  circumstances that can emerge from topology change.
+\item Finally, translating the \emph{potential} for performance in
+  grid based representations into \emph{practical gains} in a
+  fully-featured interactive system is a nontrivial proposition.
+\end{itemize}
+Handling all of these concerns simultaneously is the essence of the
+challenge at hand.  The work presented in this dissertation describes
+methods for addressing these issues. In particular, techniques for
+infusing additional topological flexibility into grid representations,
+allowing them to effectively capture thin, sub-cell material, while
+not giving up on performance opportunities will be covered in Chapters
+\ref{chp:nonmanifold} and \ref{chp:parallelization}; these chapters
+also address collision processing within the same framework.  In order
+to capitalize on the performance potential, the regularity of the grid
+based representation will be used to build efficient streaming kernels
+in Chapter \ref{chp:parallelization}. Additionally, higher level
+abstractions, described in Chapter \ref{chp:macroblocks}, are
+possible: grouping together multiple cells and creating larger
+macroblocks for improved performance and to more effectively capture
+nonlinear behaviors.
 
 \section{Parallelism Concerns with Modern Hardware}
 
 Modern hardware and modern simulation techniques are currently
 intersecting with a high level of maturity on both sides. This brings
-the possibility of being able to run large simulations on fairly
-commodity hardware at near real-time rates, something once considered
-impractical. However, simply running existing simulation
-implementations on current hardware does not necessarily mean high
-performance. Algorithms and techniques must be adapted to the
-underlying performance mechanisms in modern computational hardware
+the possibility of being able to run large simulations on commodity
+hardware at near real-time rates, something once considered
+impractical. However, simple reuse of existing simulation
+implementations on current hardware does not always result in
+competitive performance. Algorithms and techniques must be adapted to
+the underlying performance mechanisms in modern computational hardware
 architecture - namely thread and vector based parallelism. Each of
 these mechanisms carries its own caveats and idiosyncrasies which must
 be accounted for in order to gain the most benefit. Unfortunately,
 despite the advances in simulation capability and behaviors, less
 attention has been paid to these parallelism concerns, often leading
 to algorithms which are poorly structured to take advantage of both
-forms of parallelism simultaneously. This concern is only complicated
-by the fact that current computation ability, expressed in operations per
-second, is about two orders of magnitude greater than the amount of
-data than can be transferred into main memory. This fact leads to an
-awkward situation where even taking advantage of parallelism could
-mean the algorithm is starved of data, negating the performance benefits.
+forms of parallelism simultaneously. Although for some application
+domains the performance divide between platform-specific and
+platform-agnostic algorithmic development might be limited, in the
+case of performance-conscious iteractive applications, such as the
+clinical domain we target, the wasted performance opportunities are too
+severe to ignore.
+
+This concern is only complicated by the fact that current arithmetic
+bandwidth, expressed in operations per second, is about two orders of
+magnitude greater than the available memory bandwidth on most
+platforms. This impacts a large majority of low-level numerical
+algorithms that deformable simulations are built on; as a consequence,
+the source of inadequate performance in interactive simulation
+scenarios is often traced in our work to imbalances in the
+memory-computation mix of the underlying algorithms. Thus, many of our
+interventions that prove most effective in restoring interactive
+performance focus on the efficiency of low-level throughput-sensitive
+kernels.
 
 The work presented in this document attempts to address these issues
-in two major fashions. First, a framework for building vectorized
-numerical kernels is presented in Chapter
+in two key aspects. First, a framework for building vectorized and
+multithreaded numerical kernels is presented in Chapter
 \ref{chp:parallelization}. This approach delivers a scalar-like API to
-the developer, while being able to generate vectorized code for
-multiple architectures and architectural widths automatically behind
-the scenes. This allows developers to focus on algorithmic
+the developer, while being able to generate efficient parallelized
+code for multiple architectures and architectural widths automatically
+behind the scenes. This allows developers to focus on algorithmic
 correctness, while not loosing the benefits of vectorization. The
-second intervention is the development of a solver for macroblocks
-which uses a delicate mirroring pattern to both expose large amounts
-of vectorization friendly computation and to keep the memory bounds of
-the operation within first level processor caches. This creates a
-lower demand for memory bandwidth, at the trade-off of additional
-computation, improving upon the memory-computation imbalance found in
-modern hardware.
+second intervention is the development of a solver for local
+neighborhoods of grid cells (macroblocks) as discussed in Chapter
+\ref{chp:macroblocks}, which uses a delicate mirroring pattern to both
+expose large amounts of vectorization friendly computation and to keep
+the memory bounds of the operation within first level processor
+caches. This creates a lower demand for memory bandwidth, at the
+trade-off of additional computation, improving upon the
+memory-computation imbalance found in modern hardware.
 
 \section{Practical Deployment of Surgical Simulations}
 
-Surgical simulation has been a popular area for deformable solid
-researchers due to the inherent challenges in the
-space. Unfortunately, most of the systems developed from this research
-never find their way into the hands of the expected users. Commercial
-simulation tools have fared better, but they are often restricted to
-expensive and bulky workstations, capable of serving a limited number
-of people simultaneously.
+Surgical simulation has been an active area for deformable solid
+research due to its intrinsic value as well as its potential as a
+catalyst for algorithmic innovation. Unfortunately, some of the most
+promising results from basic research are confronted with complex
+challenges upon attempted integration into a comprehensive real-world
+system. Commercial surgical simulation tools have fared better, but
+they are often restricted to expensive and bulky workstations, only
+support a small number of simultaneous users, and provide a limited
+feature set.
 
 The work in this document attempts to address these issues by
 exploring methods for practically deploying surgical simulation
@@ -243,43 +278,34 @@ not restricting the system to exotic, specific requirements. Second,
 we have explored a wide range of implementations and approaches for
 delivering software to users. These include both local and remote
 simulation designs, making use of modern web technologies, and taking
-a careful look at third party library implications. This approach was
-demonstrated in a live demonstration of the surgical simulation
-software for medical students. The details of this development strategy are
-covered in Chapter \ref{chp:deployment}.
+careful look at third party library implications. This approach was
+demonstrated in a live pilot deployment of the surgical simulation
+software for medical students. The details of this development
+strategy are covered in Chapter \ref{chp:deployment}.
 
 \section{Outline}
 
 What follows is a short outline of the remaining chapters within this
-dissertation.
-
-\begin{description}
-\item[Chapter 2] In Chapter \ref{chp:motivation}, the motivation for
-  this document is dissected in more detail, exploring both technical
-  domain considerations and design philosophies.
-\item[Chapter 3] A technical deconstruction of basic deformable solid
-  simulation practices is covered in Chapter \ref{chp:engineering},
-  along with an introduction to notable technical challenges.
-\item[Chapter 4] An examination of related work is covered in Chapter
-  \ref{chp:relatedwork}, placing the contributions of this document in
-  a broader context.
-\item[Chapter 5] Chapter \ref{chp:nonmanifold} demonstrates how the
-  regularity of Cartesian grids can be combined with desired amounts
-  of topological flexibility, both for capturing model geometry and for
-  contact scenarios. 
-\item[Chapter 6] Chapter \ref{chp:parallelization} continues with a
+dissertation. In Chapter \ref{chp:motivation}, the motivation for this
+document is dissected in more detail, exploring both technical domain
+considerations and design philosophies.  A technical deconstruction of
+basic deformable solid simulation practices is covered in Chapter
+\ref{chp:engineering}, along with an introduction to notable technical
+challenges.  An examination of related work is covered in Chapter
+\ref{chp:relatedwork}, placing the contributions of this document in a
+broader context.  Chapter \ref{chp:nonmanifold} demonstrates how the
+regularity of Cartesian grids can be combined with desired amounts of
+topological flexibility, both for capturing model geometry and for
+contact scenarios.  Chapter \ref{chp:parallelization} continues with a
 discussion around thread and vector based parallelism in the context
-of Cartesian grids.
-\item[Chapter 7] Chapter \ref{chp:macroblocks} describes a new method
-  for solving for elastic deformations which constructs larger
-  macroblocks for better convergence.
-\item[Chapter 8] Chapter \ref{chp:deployment} describes practical
-  deployment concerns and delivers a critique of the various
-  implementation options for surgical simulation systems.
-\item[Chapter 9] Chapter \ref{chp:discussion} concludes this document
-  with a final look back at completed work and considers future work
-  along with current shortcomings.
-\end{description}
+of Cartesian grids.  Chapter \ref{chp:macroblocks} describes a new
+method for solving for elastic deformations which constructs larger
+macroblocks for better convergence behavior.  Chapter \ref{chp:deployment}
+describes practical deployment concerns and delivers a critique of the
+various implementation options for surgical simulation systems.
+Chapter \ref{chp:discussion} concludes this document with a final look
+back at completed work and considers future work along with current
+shortcomings.
 
 %%% Local Variables:
 %%% mode: latex
