@@ -16,9 +16,9 @@ The Newton method has largely been the golden standard for the
 simulation of nonlinear elastic bodies, although a number of
 interesting deviations from this standard approach have garnered
 attention in the graphics literature (e.g., nonlinear multigrid cycles
-\citep{ZhuSTB:2010}, projective and position-based dynamics
-\citep{MuellHHR:2007,BouazMLKP:2014,Wang:2015} and shape matching
-\citep{RiverJ:2007}). In a typical Newton scheme, once a linear
+~\citep{ZhuSTB:2010}, projective and position-based dynamics
+~\citep{MuellHHR:2007,BouazMLKP:2014,Wang:2015} and shape matching
+~\citep{RiverJ:2007}). In a typical Newton scheme, once a linear
 approximation to the governing equations is computed, most
 practitioners will either employ a direct method or select a technique
 from a spectrum of iterative methods in order to solve the resulting
@@ -36,7 +36,7 @@ system.
    boundaries. Conjugate Gradients is applied to a system with the
    size of these interface nodes. The model has 286K grid cells.}
  \label{fig:macroblocks:skinning-example}
-\vspace*{-.1in}
+
  \end{figure} 
 
  Direct solvers are perhaps the safest and most straightforward way to
@@ -73,7 +73,7 @@ system.
  iterative methods are assembly-free, alleviating the need to
  construct or store the stiffness matrix.  In fact, some of the most
  efficient techniques go to great lengths to minimize memory footprint
- \citep{McAdaZSETTS:2011} while leveraging SIMD and multithreading.
+ ~\citep{McAdaZSETTS:2011} while leveraging SIMD and multithreading.
 
  Iterative solvers often have to cope with challenges of their
  own. Local methods like Jacobi, GS, and SOR are slow to capture
@@ -99,7 +99,7 @@ system.
  a handful of iterations would suffice to solve the linearized
  equations. Multigrid-based preconditioners might achieve more
  competitive performance, but such approaches have been primarily
- tested in the area of fluid simulation \citep{FerstWD:2014} and not so
+ tested in the area of fluid simulation ~\citep{FerstWD:2014} and not so
  much in nonlinear deformable solids.
 
  We propose a hybrid method that balances certain advantages of both
@@ -139,14 +139,14 @@ system.
 \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/face_smash1.png}
 \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/face_smash2.png}
 \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/face_smash3.png} \end{center}
-\vspace{-.05in}
+
 \caption{Macroblock solver used to handle rigid-elastic collision
   scenario }{A kinematic rigid sphere collides against a
   high-resolution embedded face model. The relatively small thickness
   of the elastic flesh, in addition to the topological features near
   the nose and mouth regions, would complicate the use of a typical
-  multigrid solver \citep{McAdaZSETTS:2011} .}
-\vspace{-.15in} \label{fig:macroblocks:face-smash-example}
+  multigrid solver ~\citep{McAdaZSETTS:2011} .}
+ \label{fig:macroblocks:face-smash-example}
  \end{figure}
 
 \section{Macroblock-based discretization and numerical solution}
@@ -181,7 +181,7 @@ solving the linearized system:
 \label{eqn:macroblocks:quasistatic}
 \end{equation}
 If an implicit Backward Euler scheme was used, a system with similar
-structure would form the core of Newton's method \citep{SifakB:2012}:
+structure would form the core of Newton's method ~\citep{SifakB:2012}:
 \begin{equation}
 \left[(1\!\!+\!\!\frac{\gamma}{\Delta t})\mathbf{K}(\mathbf{x}_n)\!+\!\frac{1}{\Delta t^2}\mathbf{M}\right]
 \delta\mathbf{x}=\frac{1}{\Delta t}\mathbf{M}(\mathbf{v}_p\!\!-\!\mathbf{v}_n)+\mathbf{f}(\mathbf{x}_n,\mathbf{v}_n)
@@ -190,7 +190,7 @@ structure would form the core of Newton's method \citep{SifakB:2012}:
 where $\mathbf{M}$ is the mass matrix, $\gamma$ is the Rayleigh
 coefficient, $\mathbf{v}_p$ the velocities at the previous time step,
 and $\mathbf{f}$ now includes both elastic and damping forces (see
-\citep{SifakB:2012} for further details).
+~\citep{SifakB:2012} for further details).
 
 Despite the semantic differences, the linear systems in equations
 (\ref{eqn:macroblocks:quasistatic}) and (\ref{eqn:macroblocks:be}) are very similar from an
@@ -301,12 +301,12 @@ following equivalent block-triangular form:
 \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/armadillo1.png}
 \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/armadillo2.png}
 \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/armadillo3.png}
-\end{center} \vspace{-.05in}
+\end{center}
 \caption{Macroblock solver used to handle basic quasistatic pose
   scenario}{Armadillo model deforming as a result of kinematically
   animated Dirichlet constraints. Embedding lattice shown on the
   right.}
-\vspace{-.15in} \label{fig:macroblocks:armadillo-example}
+ \label{fig:macroblocks:armadillo-example}
 \end{figure}
 
 Equation (\ref{eqn:macroblocks:schur}) suggests the following algebraically
@@ -439,7 +439,7 @@ macroscopic cell blocks.
   sparsity, and this ordering is mirrored (f) to the other 15
   subdomains.}
 \label{fig:macroblocks:structure}
-\vspace*{-.15in}
+
 
 \end{figure}
 
@@ -582,7 +582,7 @@ solving a problem
 $\mathbf{K}_{\textrm{II}}\mathbf{x}_\textrm{I}=\mathbf{f}_\textrm{I}$
 is equivalent to multiplying with the factorized version of
 $\mathbf{K}_{\textrm{II}}^{-1}$ in the equation above. We make the
-following significant observations: \vspace{-.04in}
+following significant observations:
 \begin{itemize}
 \item Other than the (seemingly elusive) inverses
   $\mathbf{K}_{11}^{-1},\mathbf{K}_{22}^{-1}$ and $\mathbf{C}^{-1}$,
@@ -609,9 +609,9 @@ following significant observations: \vspace{-.04in}
 \end{itemize}
 
 \begin{figure}[h]
-\vspace*{-.35in}
+
 \centering{\includegraphics[width=.90\columnwidth]{chapter_macroblocks/images/Post_Extend_Sparsity.pdf}}
-\vspace*{-.1in}
+
 \caption{Illustration of macroblock sparsity patterns}{Sparsity of
   Cholesky factorization (with our optimal reordering), shown with red
   \textbf{and} black colors. The memory footprint of our proposed
@@ -655,9 +655,9 @@ achieved by our macroblock solver, averaging between 13-18GB/s on a
 10-core Haswell-EP Xeon processor.
 
 \begin{figure}[h]
-\vspace*{-.35in}
+
 \centering{\includegraphics[width=.96\columnwidth]{chapter_macroblocks/images/Solver_Matrix_Components_Colored.pdf}}
-\vspace*{-.1in}
+
 \caption{Illustration of SIMD-instruction groupings of a macroblock
   matrix}{Our method reveals regular structures in the matrix sparsity
   pattern, exploiting them for vectorization. Same-color entries in
@@ -665,25 +665,25 @@ achieved by our macroblock solver, averaging between 13-18GB/s on a
 \label{fig:macroblocks:sparsity2}
 \end{figure}
 
- \begin{figure*}[t!] \begin{center} \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/nineballs1.png} \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/nineballs2.png} \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/nineballs3.png} \end{center} \vspace{-.05in}
+ \begin{figure*}[t!] \begin{center} \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/nineballs1.png} \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/nineballs2.png} \includegraphics[width=.32\textwidth]{chapter_macroblocks/images/nineballs3.png} \end{center}
    \caption{Macroblock collision scenario unsuitable for multigrid
      techniques}{An array of 9 kinematic spheres, arranged in an
      alternating pattern across a thin volumetric sheet, are pressed
      against it. The limited thickness of this model would hinder
      applicability of stock geometric multigrid, in the absence of
      nonstandard coarsening strategies.}
-   \vspace{-.15in} \label{fig:macroblocks:nineballs-example} \end{figure*}
+    \label{fig:macroblocks:nineballs-example} \end{figure*}
 
 \subsection{Vectorization}
 \label{sec:macroblocks:vectorization}
 
 \begin{figure*}[t!] \begin{center} \includegraphics[width=.31\textwidth]{chapter_macroblocks/images/skinning2_skin.png} \includegraphics[width=.31\textwidth]{chapter_macroblocks/images/skinning2_macroblocks.png} \includegraphics[width=.31\textwidth]
     {chapter_macroblocks/images/skinning2_interface.png} \end{center}
-  \vspace{-.05in} \caption{Skinning simulation example with
+  \caption{Skinning simulation example with
     spring-attached bones}{An additional demonstration of a skinning
     simulation, driven by kinematic bones attached to the flesh via
     spring constraints.}
-  \vspace{-.25in} \label{fig:macroblocks:skinning2-example} \end{figure*}
+  \label{fig:macroblocks:skinning2-example} \end{figure*}
 
 The sparse matrix data used in our method, as seen in figure
 \ref{fig:macroblocks:sparsity2}, is characterized by extensive regular and
@@ -756,11 +756,11 @@ skinning animations and elastic models colliding with kinematic rigid
 objects.  We used a hexahedral finite element discretization of
 corotated linear elasticity, with the standard adjustments for robust
 simulation in the presence of inverted elements
-\citep{IrvinTF:2004}. Given that our method uses a direct solver at the
+~\citep{IrvinTF:2004}. Given that our method uses a direct solver at the
 macroblock level, we opted to integrate the strain energy using the
 eight Gauss quadrature points for each hexahedron, as opposed to the
 one-point quadrature scheme that is often used
-\citep{McAdaZSETTS:2011,PatteMS:2012}. This more accurate quadrature
+~\citep{McAdaZSETTS:2011,PatteMS:2012}. This more accurate quadrature
 scheme does not require explicit stabilization, and adds no extra
 algorithmic effort in our solver other than a modest increase in the
 matrix construction cost.
@@ -803,7 +803,7 @@ data was drawn from the CMU motion capture database
 \setlength{\tabcolsep}{3pt}
 \begin{table}[b!]
 \centering
-\vspace*{-.1in}\caption{Performance results for the macroblock solver
+\caption{Performance results for the macroblock solver
   across several examples}{Runtime details on a 10-core Xeon E5-2687W CPU. The benchmark in the first column is repeated in the last two columns using stock CG, with one and eight quadrature points respectively. \textsf{Interface-Multiply} is the multiplication with the Schur complement.}
 \label{tbl:performance_results}
 \begin{tabular}{ p{4cm} | ccccc}
@@ -837,7 +837,7 @@ and parallelized matrix-free implementation of unpreconditioned
 Conjugate Gradients, borrowed from the work of \citet{MitchCS:2015}. While using this matrix-free CG solver, we
 consider two discretization alternatives: (a) a one-point quadrature
 scheme, with explicit stabilization
-\citep{McAdaZSETTS:2011,PatteMS:2012}, listed in the third column and
+~\citep{McAdaZSETTS:2011,PatteMS:2012}, listed in the third column and
 (b) a more accurate 8-point quadrature scheme matching the one in our
 macroblock solver (fourth column). As mentioned, the quadrature scheme
 does not affect the solve times of our method, once the matrix has

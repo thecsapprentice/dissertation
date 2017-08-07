@@ -163,13 +163,11 @@ $\vec{x} = (x, y, z)$. This relationship can be seen in Figure
 
 \begin{figure}[t]
   \includegraphics[width=\textwidth]{other_images/DeformationFigure.pdf}
-  \vspace*{-.3in}
    \caption{Example Deformation Map}{The deformation map $\phi$ is
      illustrated here mapping between locations $\vec{X}$ in the
      object's reference configuration and corresponding deformed
      locations $\vec{x}$ in the object's deformed configuration.}
    \label{fig:deformationexample}
-   \vspace*{-.15in}
 \end{figure}
 
 % If we recall Newton's Third Law of Motion, external forces applied to
@@ -389,13 +387,11 @@ conformity.
 \begin{figure}[t]
   \includegraphics[width=.5\textwidth]{other_images/LionStatue.png}
   \includegraphics[width=.5\textwidth]{other_images/LionLattice.png}
-  \vspace*{-.3in}
    \caption{Lattice Embedding}{Show here is a three dimensional lion
      model\footnotemark (left) and the corresponding embedding lattice
      (right). Each vertex of the lion model is embedded into a cell of
    the lattice, which acts as a deformable scaffold around the model.}
    \label{fig:embeddingexample}
-   \vspace*{-.15in}
 \end{figure}
 
 \footnotetext{The lion model was rendered with a shader created
@@ -499,11 +495,11 @@ quadrature points, each with a individual weight $w_q$, such that
 $\sum_q w_q = 1$. $||\Omega_e||$ corresponds to the volume of an
 individual cell. Our choice of quadrature points greatly affects the
 accuracy of the approximation. Using an eight point Gauss quadrature,
-while expensive, is third-order accurate for regular, axis-aligned hexahedra. For more
-accuracy at cells which are only partially covered with material,
-\cite{PatteMS:2012} demonstrated an alternative quadrature scheme that
+while expensive, is third-order accurate for regular, axis-aligned
+hexahedra. For cells which are only partially covered with material,
+~\cite{PatteMS:2012} demonstrated an alternative quadrature scheme that
 second order accurate and uses four points. Finally, one point quadrature is possible
-\citep{McAdaZSETTS:2011} if an additional stabilization energy term is
+~\citep{McAdaZSETTS:2011} if an additional stabilization energy term is
 included to compensate for unpenalized deformation modes.
 
 At this point, it is straightforward to define the global discrete
@@ -731,7 +727,7 @@ significant challenges. Some of the major difficulties include:
     $3\times 8$ gradient matrix encoding the derivative of the shape
     functions. $V_0=h^3$ is the volume of the
     cartesian cell. $\mathcal{T}$ is a sparse 4th order tensor as
-    defined in \protect\cite{TeranSIF:2005} }
+    defined in \protect~\cite{TeranSIF:2005} }
   \label{alg:isotropicforces}
 \end{algorithm}
 \clearpage
@@ -807,7 +803,7 @@ any material point $\vec{\mathbf X}_\ast$, $\mathbf{G}(\vec{\mathbf X}_\ast)$ ca
 precomputed as its value is independent of any deformation.
 \vspace*{-.1in}
 \paragraph{Force computation} We mimic the elastic force derivation
-from \cite{McAdaZSETTS:2011},
+from ~\cite{McAdaZSETTS:2011},
 referring to Equations [\ref{equ:discreteenergyint},\ref{equ:discreteforces}], for an individual force components
 $f_i^{(j)}$, where $i$ indicates which node and $j \in \{1,2,3\}$
 indicates the axis:
@@ -851,7 +847,7 @@ element-by-element basis, adding the contribution of each $\Omega_e$
 to the aggregate differentials.  The force differentials can
 be collectively computed as
 $\delta\mathbf{H}_e(\delta\bvec{\mathbf x};\bvec{\mathbf x})=[\delta\vec{f}_1\ \delta\vec{f}_2\ \hdots\
-\delta\vec{f}_8]$, described in \cite{McAdaZSETTS:2011} and \cite{PatteMS:2012}, as
+\delta\vec{f}_8]$, described in ~\cite{McAdaZSETTS:2011} and ~\cite{PatteMS:2012}, as
 follows:
 %% \vspace*{-.15in}
 \begin{equation}
@@ -870,7 +866,7 @@ $$
 %% \vspace*{-.15in}
 In this expression, the fourth order tensor
 $\mathcal{T}=\partial^2\Psi/\partial\mathbf{F}^2$ is the stress
-derivative. We refer the reader to \cite{TeranSIF:2005} for a
+derivative. We refer the reader to ~\cite{TeranSIF:2005} for a
 discussion of how this tensor can be constructed via the SVD for
 isotropic materials.
 
@@ -953,7 +949,7 @@ isotropic materials.
   quasi-static - meaning that changes to the hooks can only occur
   in between solve steps. While this prevents a user from having
   smooth control, we can create its illusion by decreasing the time of
-  each solve step. In later Chapters we'll look at techniques for
+  each solve step. In later chapters we'll look at techniques for
   improving raw performance, but we can also stop the Newton method
   early - displaying partially converged deformations to the user, but
   allowing them the opportunity to engage in further control actions
@@ -1014,7 +1010,7 @@ isotropic materials.
   \subsection{Scene Constraints}
 
   The second category of constraints are the static scene
-  constraints. In this case static is referring to the notion that the
+  constraints. In this case the term static is referring to the notion that the
   user does not have control over the creation of these constraints
   and that they are instead initialized once for each surgical
   model. This is a subtle distinction, which will be more clear during
@@ -1056,7 +1052,7 @@ isotropic materials.
   For rigid body collisions, i.e. collisions between the soft body and
   an external rigid object, level sets have been employed quite
   successfully for collision detection
-  purposes\citep{TeranSIF:2005,McAdaZSETTS:2011} with complexities in
+  purposes~\citep{TeranSIF:2005,McAdaZSETTS:2011} with complexities in
   the order $O(1)$ for any point of interest. The general idea is to
   define a level set over a rigid body and then between each
   quasi-static solution check which proxies are in a state of
@@ -1173,12 +1169,10 @@ isotropic materials.
     \centering
     \includegraphics[width=.9\textwidth]{chapter_gridiron/images/New_HybridLattice2.pdf}
     % \includegraphics[width=.25\textwidth]{/tmp/foo.png}
-    \vspace*{-.1in}
     \caption{Illustration of non-grid aligned topology change}{ A cutting path
     (far left) gives rise to new cells on either side of the cut
     (center), allowing the lattice to be divided below cell resolution
   (far right).}
-    \vspace*{-.15in}
     \label{Fig:MaterialContinuityPreview}
   \end{figure}
   

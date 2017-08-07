@@ -16,7 +16,7 @@ into surgical simulation turned to elastic deformation models
 probing and cutting ~\citep{BroC:1996,MendoL:2003,NienhS:2001}. However,
 these early works were limited in their scope and effectiveness due to
 computational cost, geometric constraints and oversimplified material
-models. In this section we outline prior contributions that help
+models. In this chapter we outline prior contributions that help
 address these limitations, and review a number of existing surgical
 simulation systems.
 
@@ -107,13 +107,17 @@ modeling tasks ~\citep{SuedaKP:2008,LiSNP:2013,FanLP:2014}.
 
 \subsection{Topology Change}
 
-A number of techniques have targetted topology change during
-simulation, due to cutting or fracture. Early work ~\citep{TerzoF:1988b}
-resorted to breaking connectivity of elements when stress limits were
-exceeded. Later methods ~\citep{NienhS:2001} split tetrahedra near cut
-boundaries and then used vertex snapping to more accurately
-approximate the cut. Local remeshing was also employed to simulate
-cracks in brittle materials ~\citep{OBriH:1999}. An issue with such
+A number of techniques have targeted topology change during
+simulation, due to cutting or fracture. Early work
+~\citep{TerzoF:1988b} resorted to breaking connectivity of elements
+when stress limits were exceeded. Later methods ~\citep{NienhS:2001}
+split tetrahedra near cut boundaries and then used vertex snapping to
+more accurately approximate the cut. \citet{SteinHGS:2006} used a
+similar approach in the context of surgical simulation, where a
+combination of node-snapping and edge cuts on tetrahedra were used to
+avoid thin elements, while still remaining close to the user's
+specified cuts. Local remeshing was also employed to simulate cracks
+in brittle materials ~\citep{OBriH:1999}. An issue with such
 subdivision schemes is the possible creation of poorly conditioned
 elements, which prompted a number of authors to pursue embedded
 simulation schemes ~\citep{MolinBF:2004,TeranSBNLF:2005}. These

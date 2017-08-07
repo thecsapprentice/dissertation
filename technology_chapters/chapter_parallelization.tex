@@ -160,17 +160,17 @@ remapping: nodes and cells. For simplicity, we will first consider
 nodes and then cells. Figure \ref{fig:remapping} illustrates the
 results of the remapping rules below:
 \begin{itemize}
-\vspace*{-.05in}\item Nodes are mapped to the grid if and only if they possess no duplicates.
-\vspace*{-.05in}\item Cells are mapped to the grid if and only if all of their vertices have been mapped to the grid.
+\item Nodes are mapped to the grid if and only if they possess no duplicates.
+\item Cells are mapped to the grid if and only if all of their vertices have been mapped to the grid.
 \end{itemize}
-\vspace*{-.05in} Each mesh cell remaining in the hybrid lattice is
+ Each mesh cell remaining in the hybrid lattice is
 associated with a coordinate from the grid. This mapping will become
 important later when we discuss the block-based acceleration
 structures.  After these rules are applied, the new structure must
 adhere to several post-conditions.
 \begin{itemize}
-\vspace*{-.05in}\item All grid cells are composed only of grid nodes.
-\vspace*{-.05in}\item Mesh cells contain one or more mesh nodes.
+\item All grid cells are composed only of grid nodes.
+\item Mesh cells contain one or more mesh nodes.
 \end{itemize}
 It should be noted that this set of rules is not strictly optimal in
 the sense of mapping the most elements into the grid. A more
@@ -185,9 +185,9 @@ benefits of implicit grid-mapped embeddings.
 
 \begin{figure}
   \centering
-\vspace*{-.12in}
+
   \includegraphics[width=3in]{chapter_gridiron/images/Figure_Topology_D}
-\vspace*{-.07in}
+
   \caption{Illustration of cell type categorization}{From an explicit mesh (top), we generate (a) mesh mapped nodes in red, grid mapped nodes in black and (b) mesh mapped cells in red, grid mapped cells in gray.}
   \label{fig:remapping}
 \end{figure}
@@ -305,9 +305,9 @@ vector.  Blocks are tiled together to cover the
 \begin{figure}[b!]
   \centering
   \def\svgwidth{\columnwidth}
-  \vspace*{-.15in}
+ 
   \input{chapter_gridiron/images/New_Blocking.pdf_tex}
-\vspace*{-.5in}
+
 \caption{Illustration of blocks formed from regions of manifold connectivity}{Generating Blocks. (a) Block boundaries superimposed over
 hybrid lattice. (b) Non-manifold contents of each block region. (c)
 Final manifold blocks for each region.}
@@ -316,7 +316,7 @@ Final manifold blocks for each region.}
   
 \begin{figure}[t]
    \includegraphics[width=\textwidth]{chapter_elasticity/figures/simd.pdf}
-   \vspace*{-.3in}
+  
    \caption{Illustration of data structure optimized for vector
      hardware}{A 2D illustration of our simulation data
      structures. Left: Nodal (deformation) data stored on a
@@ -327,7 +327,7 @@ Final manifold blocks for each region.}
      stack-allocated structure, and duplicated for each voxel for SIMD
      computation.}
    \label{fig:simd}
-   \vspace*{-.15in}
+
 \end{figure}
   
 We use the partitioning of our lattice into blocks to circumvent write
@@ -379,7 +379,7 @@ arising from the non-manifold mesh structure.
 In simple cases, where all cells are composed of material or not, the
 previous approach for data organization works well. Even for cases
 where cells are allowed to be practically full of material, we can
-simply adjust the force computation \citep{PatteMS:2012}. While this
+simply adjust the force computation ~\citep{PatteMS:2012}. While this
 increases the complexity, it does so in a uniform fashion - all cells
 become more complex. The true enemy of vectorization is
 irregularity. Unfortunately, when we are faced with features like
@@ -416,7 +416,7 @@ blocks with overlays, can be seen in Figure \ref{fig:full-block-vectorization}.
 
 \begin{figure}[t]
    \includegraphics[width=\textwidth]{chapter_elasticity/figures/full-block-vectorization.png}
-   \vspace*{-.3in}
+ 
    \caption{Illustration of data structure optimized for vector
      hardware, with overlays}{A complete 2D illustration of the block
      based vectorization computation of elastic forces, including
@@ -426,7 +426,7 @@ blocks with overlays, can be seen in Figure \ref{fig:full-block-vectorization}.
      dependent overlays for force constraints and local material
      mix-ins, final forces are scattered back to hybrid mesh.}
    \label{fig:full-block-vectorization}
-   \vspace*{-.15in}
+ 
 \end{figure}
 
 
@@ -463,7 +463,7 @@ classes:
 \begin{shaded}
 \texttt{template<class boolean\char`_arch> class Mask;}
 \end{shaded}
-\vspace*{-.1in} Class \texttt{Number} is an abstraction of a single
+ Class \texttt{Number} is an abstraction of a single
 floating point number in a scalar platform
 (\texttt{scalar\char`_arch==float}) or of a 4/8/16-wide vector
 register in SSE/AVX/Xeon Phi platforms
@@ -707,7 +707,7 @@ m{1.3cm}
                                                                                      & Phi                   & 2006903               & 2006903 & 0      & 265078 & 3.9608  & 11.4  & 16.3  & 7.8   & 3.3  & 16.2 \\
 \bottomrule
 \end{tabular}
-\vspace*{-.05in}
+
 \caption{Performance results for surgical and animation examples.}{Examples run on the Xeon platform used a 6-core Intel Xeon CPU E5-1650 machine with 64 GB of memory, while the Phi examples ran
   on a 60-core Xeon Phi 5110P card with 8GB of memory.
 % All numbers shown were run with maximum number of available cores.
@@ -716,7 +716,7 @@ All surgical examples were run with 50 conjugate gradient iterations while the h
 %Each CG iteration consisted of a single \textsf{Add Differential} plus a \textsf{Compact} and \textsf{UnCompact}, which are described in Section \ref{sec:blocking}
 } 
 \label{fig:TimeResultsTable}
-\vspace{-.15in}
+
 \end{myrotatedtable}
 
 \renewcommand{\arraystretch}{1}

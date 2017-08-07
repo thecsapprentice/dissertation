@@ -2,79 +2,85 @@
 \chapter{Discussion}
 \label{chp:discussion}
 
-This final chapter of this dissertation will now cover some important
-remaining points that did not fit into the previous chapters. Included
-among them are salient ideas that derive from the accumulated
-knowledge picked up from the research that went into this document,
-known and discovered limitations of the methods previously described,
-and potential avenues for future work. The structure of this chapter
-is as follows: the next several sections will touch on themes and
-concepts that precipitate from the
-
-
+The conclusion of this document, presented in this chapter, will
+attempt to draw together concepts and lessons from previous chapters.
+Included among them are salient ideas that derive from the accumulated
+knowledge picked up from the experiences and research that produced
+this document, known and discovered limitations of the methods
+previously described, and potential avenues for future work. The
+structure of this chapter is as follows: the next several sections
+will touch on themes and concepts that precipitate from the earlier
+technical chapters, highlighting several important lessons
+learned. This will be followed by a section describing currently
+understood technical limitations of the techniques presented thus far,
+along with directions for future research.
 
 \section{Themes}
 
-\subsection{Vectorization and Performance}
+\subsection{Comments on Vectorization}
 
-Despite support for vector instructions existing in consumer
-grade hardware since the late 1990's, developing applications that
-successfully and efficiently use this computation model is still
-difficult. This difficulty arises from multiple directions, which is perhaps a
-reason for its continual presence. The major challenges encountered
-during the work that led up to this dissertation can be grouped into
-several categories: design, abstractions, and debugging.
+Despite support for vector instructions existing in consumer grade
+hardware since the late 1990's, developing applications that
+successfully and efficiently use this computation model can still
+present serious complications. This difficulty arises from multiple
+directions, which is perhaps a reason for its continual presence. The
+major challenges encountered during the work that led up to this
+dissertation can be grouped into several categories: design,
+abstractions, and debugging.
 
-\paragraph{Design}~ Successfully designing software to use vector
-instructions is unfortunately a complex task, touching many aspects of
-an algorithm from control flow to data layouts. In an ideal world, it
-would be nice to simply be able to specify algorithms and let a tool,
-such as a compiler, do the work of extracting out vector friendly
-parallelism, restructuring data structures and instructions
-accordingly. Unfortunately this level of intervention is currently
-beyond the automatic tools compilers provide developers and possibly
-always will be out of reach. At present, it remains a developer's
-responsibility to organize algorithms and data structures in
-vector-friendly ways, such as the blocking designs demonstrated in
-Chapter \ref{chp:parallelization}. And even with these invasive
-restructurings, modern compilers struggle to produce optimal vector
-code: minimizing the amount of register spills into main memory,
-inserting appropriate prefetching instructions, and other such
-optimizations can often must be completed by hand.
+\paragraph{Design}~ Our experience with designing data structures and
+algorithms for use with vector instructions was centered primarily
+around need. While we would have preferred using existing automatic
+tools and middleware that could have abstracted away the challenges of
+directly writing vector-aware code, our experiences showed us that
+existing solutions were unsuitable for the strict optimization and
+performance requirements we operated under. We were required to
+significantly restructure data structures and algorithms in order to
+extract vector friendly parallelism. At present, it seems clear to us
+that it remains a developer's responsibility to organize algorithms
+and data structures in vector-friendly ways, such as the blocking
+designs demonstrated in Chapter \ref{chp:parallelization}. And even
+with these invasive restructurings, modern compilers struggle to
+produce optimal vector code: minimizing the amount of register spills
+into main memory, inserting appropriate prefetching instructions, and
+other such optimizations can often must be completed by hand.
 
 \paragraph{Abstractions}~ At a level higher than designing a
-appropriate algorithm or data structure for vectorization, the task of
-making such designs portable to different vector architectures is also
-very challenging. This occurs both within closely related
-architectures, such as the multiple vector instruction sets in the x86
-family of processors, and between architectures, such as between Intel
-Phi accelerator cards and GPUs. The work demonstrated in Chapter
-\ref{chp:parallelization} on the vector library class was designed to
-assist with this problem, making it easier to port code between
-multiple vector instruction sets in the x86 architecture family. Other
-related work involving heterogeneous simulation of fluids
-\citep{LiuMAS:2016} presents an example of the other problem, where an
-abstraction layer needed to be created to communicate with Intel Phi
-accelerators, GPUs, and standard CPUs on an equal basis, along with
-multiple implementations of the same algorithm tailored for each
-architecture. It remains an open question on how to best support such
-a heterogeneous architecture environment, especially when high level
-abstractions can easily prevent exploiting architecture specific
-properties required for optimal performance.
+appropriate algorithm or data structure for vectorization, we also
+were faced with the challenge of making such designs portable to
+different vector architectures. Our desire to have our software be
+portable to multiple platforms required us to focus on a variety of
+situations, including closely related architectures, such as the
+multiple vector instruction sets in the x86 family of processors, and
+between architectures, such as between Intel Phi accelerator cards and
+GPUs. The work demonstrated in Chapter \ref{chp:parallelization} on
+the vector library class was designed to assist with this problem,
+making it easier to port code between multiple vector instruction sets
+in the x86 architecture family. Other related work involving
+heterogeneous simulation of fluids ~\citep{LiuMAS:2016} presents an
+example of the other problem, where an abstraction layer needed to be
+created to communicate with Intel Phi accelerators, GPUs, and standard
+CPUs on an equal basis, along with multiple implementations of the
+same algorithm tailored for each architecture. It remains an open
+question on how to best support such a heterogeneous architecture
+environment, especially when high level abstractions can easily
+prevent exploiting architecture specific properties required for
+optimal performance.
 
-\paragraph{Debugging}~ Finally, once an design has been settled upon,
-the process of debugging vectored code can be extra challenging,
-compared to standard scalar implementations. Some of the reasons are
+\paragraph{Debugging}~ The last major issue that arose during our
+development process was how to successfully debug the vectorized code we were
+writing. This step proved more challenging than initially anticipated
+for several, not immediately obvious, reasons. Some of the problems were
 due to the structure of the code itself: By using vector instructions
 we are generally breaking two commonly depended upon aspects of
 code. First, a vector instruction acts upon multiple, independent
 items of data at once. Because of this, identifying issues often
-requires tracing multiple concurrent computations at the same time, as
+required tracing multiple concurrent computations at the same time, as
 they are impossible to separate during execution. Second, due to the
 fact that vector code is typically branch-free (or close to it), we
-can't depend on tracing different code paths as a indication of
+could not depend on tracing different code paths as a indication of
 problems. Instead of being able to compartmentalize the process along
-isolated branches, we are forced to look at the entire algorithm as
+isolated branches, we were forced to look at the entire algorithm as
 one continuous flow when diagnosing issues. All of these problems
 would be challenging enough, but vector instructions provide one last
 lingering complication during debugging. Discovered during the
@@ -86,23 +92,35 @@ not matter in most practical scenarios, but its existence makes
 checking numerical correctness difficult when exact answers cannot be
 relied upon.
  
-\subsection{Non-Manifold Data Structures}
+\subsection{Intuition: A Double Edged Sword}
 
-One of the big themes in this dissertation has been the use of
-data structures for non-manifold geometry. This approach has been
-rewarding, but not without drawbacks. Later in this chapter, specific
-limitations of the approach used for non-manifold level sets will be
-discussed, but the focus of this section is the general concept of
-non-manifold representations and closely related ideas. The major
-problem with non-manifold representations is that there is no real
-world analog with which developers can relate to. Real objects, unlike
-non-manifold geometry, can not self intersect - this is a non-physical
+One of the big themes in this dissertation has been the use of data
+structures for non-manifold geometry. Our reasons for choosing this
+family of geometry representations were primarily based on our
+intuition that they would maintain many of the regularity features we
+enjoyed from more strict grid-based data structures, while improving
+upon the topological flexibility of those designs. For the most part,
+we were satisfied in this regard - somewhat ironically, one the
+biggest challenges we faced with this approach was not technical, but
+our own geometric intuitions. The major problem we discovered with
+non-manifold representations is that there are no real world analogs
+with which we could relate to. Real objects, unlike non-manifold
+geometry, can not self intersect - this is a purely non-physical
 concept that makes certain algorithms easier to develop. As a result,
-developers can struggle with these approaches as, unlike with many other
-topics in visual computing, they can be very difficult to visualize
-mentally.
+we struggled with these approaches as, unlike with many other topics
+in visual computing, they proved to be very difficult to visualize
+mentally. An example of this problem occurred during the development of
+the backtracing algorithm for non-manifold level sets. Initially, due
+to our intuitions at the time, we focused most of our effort on
+defining the surface of the geometry and how the data structure would
+capture this information. In the end, we realized that this line of
+thinking, while it made sense from the perspective of visualizing our
+virtual object, did not actually help us answer the real question:
+where was the closest surface point. Refocused around this more
+narrowly scoped goal, the backtracing algorithm described in Section
+\ref{sec:levelsetalgorithms} came together much more naturally.
 
-This problem is especially present as one transitions from two
+This problem with intuition is especially present as one transitions from two
 dimensional domains into three dimensional domains. Unlike other
 properties, such as those based on volume, whose complexity might only
 change from a quadratic scaling to a cubic scaling, topology is much
@@ -125,14 +143,14 @@ geometric data structures, and associated algorithms, is that they are
 difficult to imagine. And what cannot be imagined is all too easy to
 overlook.
 
-\subsection{Software Engineering}
+\subsection{Software Engineering Lessons}
 
 A large amount of work completed in pursuit of this dissertation was
 dependent on good software engineering practices. From these
 experiences, we have distilled several important ideas that are worth
 further discussion. The first is a general statement on optimization
 strategy. Often algorithmic optimization is judged by comparison: by
-what percentage does algorithm A outperform algorithm B? Instead, we
+what percentage does implementation A outperform implementation B? Instead, we
 find that a more absolute approach is preferable, allowing us to have
 a better sense of how well our algorithms perform and, often equally
 important, how much performance is being underutilized. Our approach,
@@ -151,15 +169,16 @@ set into and out of main memory\footnote{We assume, during this
   prefetching and other memory access optimizations. We are purely
   interested in the amount of bytes read and written, divided by the
   amount of memory bandwidth provided by the hardware platform in
-  question}, we can derive a measure of \textit{algorithmic
+  question.}, we can derive a measure of \textit{algorithmic
   efficiency}. We find this method more useful, practically, than the
-traditional Big O notation used elsewhere, as it incorporates the
-implementation and hardware details that are meaningful in real-world
-settings. Especially since this method provided clear indications of
-whether or not a particular intervention we had taken was successful
-\textit{enough}.
+common approach of comparing against existing implementations (either
+ours or someone else's). By comparing against an absolute reference
+point instead of a relative one, for a particular platform at least,
+we had confidence that we could not do better than we had done. This
+proved especially important when considering whether or not a
+particular intervention was successful \textit{enough}.
 
-Related to this idea, the next software engineering advice we have
+Related to this approach, the next software engineering advice we have
 found valuable during our work is that memory bandwidth is extremely
 important and generally becomes a major consideration sooner than
 people expect. This is somewhat at odds with conventional knowledge
@@ -173,7 +192,7 @@ suffer from poor memory bandwidth utilization. Worse, these problems
 can be difficult to see - while analysis tools can report general
 issues, the causes are often subtle and structural in an implementation.  
 
-A final idea that we espouse is that understanding the particular
+A final concept that we espouse is that understanding the particular
 nature of a problem can lead to more effective solutions than existing
 powerful, but generic, solutions. Our macroblock solver detailed in
 Chapter \ref{chp:macroblocks} is a great example of this
@@ -197,22 +216,119 @@ development that went into the surgical simulation benchmark has left
 a lasting impression and driven home several important ideas. The most
 important among them is the sense that maintaining a broad attitude
 when approaching new projects is beneficial and in many cases
-necessary for their success. Had we restricted our research questions
-to simply pursuing theoretical improvements or algorithmic designs, we
-would never have arrived at a successful tool that was both usable
-and high performance. In the quest to support the needs of our domain
+necessary for their success. Commonly, researchers focus on narrowly
+defined problems, only reluctantly moving into higher or lower levels
+of abstraction. And while this focus can be desirable, potentially
+leading to great advances, had we restricted our research questions to
+simply pursuing theoretical improvements or algorithmic designs, we
+would never have arrived at a successful tool that was both usable and
+high performance. In the quest to support the needs of our domain
 experts, we saw no choice but to move down the levels of abstraction
 to acquire additional performance by tackling questions all the way
 down to the hardware level. Likewise, as we wanted a system that was
 flexible to be used in a number of real-world scenarios, we moved up
 from pure simulation goals and looked at challenges in user interfaces
-and network service design. Moreover, it was important to step outside
-of the field of computer science to learn about the concepts and
-problems that were important in the field of plastic surgery in order
-to effectively converse with our colleagues in this domain. What
-resulted was a broad covering of many areas, with perhaps less depth
-in any one area, which produced a successful end product, filled with
-both compelling research results and solid engineering accomplishments.
+and network service design. Being willing to move in this space did
+mean that less depth was covered, but it came at the benefit of seeing
+the system from a complete perspective, allowing for cross-cutting
+interventions that required a broad take on the situation. Moreover,
+it was important to step outside of the field of computer science to
+learn about the concepts and problems that were important in the field
+of plastic surgery in order to effectively converse with our
+colleagues in this domain. What resulted was a broad covering of many
+areas, with perhaps less depth in any one area, which produced a
+successful end product, filled with both compelling research results
+and solid engineering accomplishments.
+
+\section{Broader Applications}
+
+Before discussing specific limitations and future work, it is worth
+considering the broader applicability of the techniques described in
+this dissertation to areas outside of plastic surgery
+simulation. While the benchmark application discussed throughout this
+document was chosen for its intrinsic challenges and potential impact
+in the field of surgery, it also served as an exemplar of challenging
+problems in other domains. In this section, we will look at the major
+technical contributions covered in this document and how they apply to
+other tasks.
+
+The first contribution area, non-manifold embedding and level sets,
+has a strong applicability elsewhere in computer graphics, including
+general simulation and geometric processing. Even with nothing else
+added, the ability to embed, simulate, and handle collisions between
+objects in a relatively coarse grid while maintaining topological
+separation of thin features is desirable. While we used these
+capabilities to embed thin incisions, classic simulation problems such
+as character animation and fracture modeling would all benefit from
+being able to embed sub-voxel resolution material, such as fingers and
+shards of a model, respectively. Another interesting area is geometric
+model cleanup, where being able to construct a level set of a
+self-intersecting mesh could enable mesh detangling algorithms. Other
+areas where non-manifold embedding and non-manifold level sets could
+be very valuable would be multiphase liquid simulations. In these
+situations, multiple types of liquid need to be in very close contact
+with one another. Non-manifold level sets could be used to capture
+their interfaces, while still allowing multiple liquid interfaces to
+exist in extremely close contact.
+
+The next contribution, the vectorization library and related
+performance optimizations, also has general applicability - here
+beyond just computer graphics. While the contributions of data layout
+for improving simulation performance are certainly transferable to
+other deformable solid simulation tasks, such as character animation,
+the core vectorization library could be applied much more broadly. The
+ability to easily write and maintain vectorized numerical kernels is
+valuable in any scientific or engineering effort where performance on
+modern computational hardware is critical. Moreover, the work
+presented in this document provides a roadmap and a list of hazards
+for future developers to use when developing their own multi-threaded
+and vectorized solutions. This last point should not be understated,
+as we found such guidelines often absent during the development of
+our solutions. Having them available to the general community is a
+contribution in its own right.
+
+Likewise, the macroblock concept and associated solver also has
+applicability to general problems. These ideas were originally
+designed to solve issues we were experiencing with convergence in
+regions too thin ( such as the scalp area ) to handle with existing
+solutions like multigrid solvers. However, as we investigated the idea
+further, it became clear that the hybrid iterative-direct macroblock
+solver could be used successfully on a broad collection of linear
+algebra problems defined over a grid discretized domain. The type of
+connectivity pattern the technique depends on is fairly common, as
+grid discretized simulation and optimization problems are present in
+computer graphics, mechanical engineering, additive manufacturing (3D
+printing) research, and many other areas. One idea we are currently
+exploring is how a macroblock style solver could be used as a drop in
+replacement for existing numerical packages such as
+PARDISO~\citep{pardiso-6.0a,pardiso-6.0b}, as long as the problem is
+defined over a grid.
+
+Finally, the deployment investigation has revealed several important
+findings that could apply outside the scope of surgical
+simulation. The major points here are the practicality of remote
+simulation and the rise of web technologies as front ends for
+computationally intensive tasks. While there exist open questions
+concerning network bandwidth and lag, remote simulation for interactive
+applications is possible - which opens up a broad range of
+applications, including animation tools for the graphics
+professionals, to more consumer oriented applications such as video
+games and simulation assisted activities, like shopping for clothing
+virtually. Building tools for these tasks can be assisted by the use
+of web technologies for user interfaces and connectivity. These
+frameworks, including Electron, have shown themselves to be ready to
+handle complex graphics applications, including simulation, during the
+trials completed as a part of this document.
+
+In the end, we feel strongly that using a surgical simulation as the
+benchmark to develop the contributions of this document was the
+correct choice. It presented numerous challenges that resulted in
+solutions that not only addressed the direct needs of our application,
+but also applied to a broader collection of problems in computer
+graphics, scientific computing, mechanical engineering, and more
+consumer focused fields. Far from being limiting or restricting our
+vision to a narrow problem, surgical simulation was a true springboard
+to an even larger world of challenges.
 
 \section{Limitations and Future Work}
 
@@ -256,7 +372,7 @@ some potential places where future work could provide improvements.
 % discuss the intricacies of these rules and software design, when we
 % consider deploying surgical simulators, which might be used with
 % actual patient data, we should keep HIPAA (and similar statutes) in mind.
-\section{Nonmanifold Level sets}
+\subsection{Non-manifold Level sets}
 
 Our pipeline for non-manifold level sets in Chapter
 \ref{chp:nonmanifold} was been specifically created for self-collision
@@ -319,12 +435,12 @@ remain relatively shallow).
 Finally, the current implementation used Cartesian grids as template
 meshes for generating the non-manifold level set. In future work, an
 exploration of different representations such as
-octrees~\cite{LosasGF:2004}, RLE
-representations~\cite{HoustNBNM:2006,IrvinGLF:2006,ChentM:2011}, the
-VDB data structure~\cite{Muset:2013} and SPGrid~\cite{SetalABS:2014}
+octrees~\citep{LosasGF:2004}, RLE
+representations~\citep{HoustNBNM:2006,IrvinGLF:2006,ChentM:2011}, the
+VDB data structure~\citep{Muset:2013} and SPGrid~\citep{SetalABS:2014}
 would be warranted.
 
-\section{Performance Optimization and Macroblocks}
+\subsection{Performance Optimization and Macroblocks}
 
 In Chapters \ref{chp:parallelization} and \ref{chp:macroblocks}, we
 looked at two different approaches for improving the performance of
@@ -365,7 +481,7 @@ this issue, along with the lack of self collision support, which has
 prevented it from being included in the current iterations of the
 plastic surgery simulation tool.
 
-\section{Surgery Simulation Platform}
+\subsection{Surgery Simulation Platform}
 
 We found that our participants who used our benchmark tool were
 extremely comfortable with aspects of 3D visual navigation, even with
@@ -412,7 +528,7 @@ deformation.
 
 A final note concerns an issue surrounding deployment: maintaining
 medical privacy. While supporting a surgical simulation tool that
-allows remote collaboration might be extremely helpful, it is
+allows for remote collaboration might be extremely helpful, it is
 important to keep in mind the implication of medical privacy
 regulations, such as the HIPPA (Health Insurance Portability and
 Accountability Act) laws in the United States. Maintaining compliance
@@ -420,7 +536,7 @@ with these regulations while still being able to transmit potentially
 patient specific pathology data to remote servers will be challenging
 to reconcile. There are interesting open questions about how this
 might be performed, given that the simulation requires access to the
-geometry of the model being simulated. One saving grace is that the
+geometry of the model being simulated. One saving grace of our system is that the
 simulations are executed on an embedding lattice, which is only an
 approximation of a patient's tissue geometry. One might imagine a
 protocol that kept the actual geometry being manipulated local and

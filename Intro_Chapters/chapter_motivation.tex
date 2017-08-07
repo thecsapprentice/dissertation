@@ -24,23 +24,23 @@ critical to understand the expectations of domain experts. Not only do
 these expectations guide the development of software, but they can
 help triage research goals and serve as domain appropriate metrics for
 the evaluation of final results. In this section, we will explore the
-specific requirements of our domain, specifically craniofacial plastic
+specific requirements of our domain, specifically soft tissue plastic
 surgery, while keeping practical engineering considerations in
 mind. In the process, we will begin developing a framework in
 which these requirements can be placed and will be explored further in
 later sections.
 
-To accomplish this goal, we need answer a series of questions that
+To accomplish this goal, we need to answer a series of questions that
 define the scope of our proposed tools, as well as its metrics for
 success: What is the potential real-world utility of the tool? How
 well does the system accomplish the task it was designed for?  What
 are the fine grained aspects of the required tasks? What features need
-to implemented (or perhaps more interestingly, not implemented)? Who
+to be implemented (or perhaps more interestingly, not implemented)? Who
 are its users? We will answer these questions by looking more narrowly
-at the problem of medical simulation for craniofacial operations which
+at the problem of medical simulation for soft tissue operations which
 we have chosen for our benchmark.
 
-For the purposes of this document, the range of craniofacial
+For the purposes of this document, the range of soft tissue
 operations under consideration will be restricted to ``local flap''
 procedures~\citep{Baker:2014}. These procedures locally alter the
 geometry of skin tissue, but do not include any alterations to
@@ -53,14 +53,12 @@ geometry.
 
 \begin{figure}
   \includegraphics[width=\textwidth]{chapter_gridiron/images/zPlastyComparison.png}
-  \vspace*{-.05in}
   \caption{Z-plasty: Comparison between textbook illustration and simulation}{A
     comparison between the classic \textit{Z-plasty} operation from a standard
     textbook ~\citep{McCarthy1990} (left) and a simulated version of the procedure
     in three dimensions (right). The simulation allows for
     more of the three dimensional shape of the procedure to be
     appreciated.}
-  \vspace*{-.05in}
   \label{fig:ZPlastyComparison}
 \end{figure}
 
@@ -86,7 +84,7 @@ sketches (see Figure \ref{fig:ZPlastyComparison}, left) and still
 photographs of procedures.
 
 Surgical skills targeted by computer-based training solutions have
-been classified \cite{GallaRCHFMSS:2005} in two major
+been classified ~\cite{GallaRCHFMSS:2005} in two major
 categories. Psychomotor skills refer to the dexterous use of the
 surgeon's hands to manipulate instruments in the course of an
 operation. In plastic surgery, psychomotor training involves
@@ -97,7 +95,7 @@ clinician to be familiar with the tactile response of pushing and
 pulling on organs and to practice coordination skills required for
 suturing and cauterization.  A number of computer-based solutions
 focus on psychomotor training, including the works of
-\cite{MendoL:2003,DeKLS:2005,KimCDS:2007,LindbT:2007}.  In contrast to
+~\cite{MendoL:2003,DeKLS:2005,KimCDS:2007,LindbT:2007}.  In contrast to
 psychomotor training, \emph{cognitive} skills and training are largely
 mental rather than dexterous exercises. For example, in the procedure
 shown in Figure \ref{fig:gridiron-teaser}, the surgeon needs to
@@ -112,14 +110,12 @@ in order to achieve a desired insertion trajectory.
 
 \begin{figure}
   \includegraphics[height=2.99in]{chapter_gridiron/images/TitleImage.png}
-  \vspace*{-.05in}
   \caption{Simulation of an advanced surgical repair at the top of the
     scalp}{Simulated \textit{Dufourmentel-Mouly} repair (see\
-    \protect\cite{Baker:2014}) for a large gap of excised tissue on
+    \protect~\cite{Baker:2014}) for a large gap of excised tissue on
     the scalp. From top to bottom, left to right: Rendered stages of
     procedure, embedding lattice, real time demo on a tablet running
     in a web browser.}
-  \vspace*{-.05in}
   \label{fig:gridiron-teaser}
 \end{figure}
 
@@ -171,7 +167,7 @@ have difficulties because the specific geometry of their condition
 adversely affects the proper functioning of their body. A surgeon must
 understand the geometry of their patient in order to produce both
 functionally correct, but also aesthetically pleasing, outcomes. Since
-these operations are often highly visible, failures or mistakes can be
+the results of these operations are often highly visible, failures or mistakes can be
 extremely costly in an emotional and social sense for the patient, let
 alone a continued disability. Any tool designed for this domain must
 take these concerns seriously and present a compelling visual
@@ -266,7 +262,7 @@ surgical contexts in the form of swelling or other physiological
 reactions to tissue damage. We will be specifically avoiding these
 types of dynamic behavior in our tool for several reasons. First, the
 models describing these behaviors are extremely complex and
-delicate. Moreover, the right answer to these problems are not clear
+delicate. Moreover, the right answers to these problems are not clear
 yet in all cases. Second, even if we had a well defined model,
 computing dynamic effects is computationally expensive, which could
 harm the interactivity of our tool. Finally, we don't really need
@@ -372,7 +368,7 @@ immediate reactions to dynamic effects.
 
 The final topic to discuss is the planned utility of the tool,
 specifically the expected use cases and deployment concerns. As
-mentioned previously, our goal to support users in authoring scenarios for
+mentioned previously, our goal is to support users in authoring scenarios for
 local flap operations. The planned modes of interaction are
 two-fold. First is the authoring mode, where an experienced user will
 interact with a three dimensional, simulated tissue model to sequentially
@@ -486,8 +482,8 @@ Utility. However, now we will demonstrate how these aspects are
 expressed in a more generic sense instead of the surgical context from
 earlier.
 
-\begin{description}
-\item[Geometry] The Geometry of a SAVS refers to anything within the
+
+\paragraph{Geometry} The Geometry of a SAVS refers to anything within the
   system dealing with shape or visual appearance. This is an
   intentionally broad concept, including geometry representation,
   texturing, and how these topics can be used functionally within the
@@ -507,10 +503,10 @@ earlier.
   discrete models too coarse to capture the important continuous
   mechanical properties. In the end, visual detail needs to be
   balanced between our wants and what we can afford, while paying
-  close attention to what we choose to comprise the result of the
+  close attention to what we choose to comprise as the result of the
   choice.
 
-\item[Reactivity] Reactivity describes the ability of a SAVS to hold
+\paragraph{Reactivity} Reactivity describes the ability of a SAVS to hold
   state and allow its users to change this state meaningfully via
   interactions with the system. In terms of simulation, reactivity
   also captures the concept of boundary conditions, material models,
@@ -554,7 +550,7 @@ earlier.
   % real world behaviors, the user may be able to translate knowledge
   % learned from the SAVS into the physical world.
   
-\item[Dynamics] As we discussed earlier, Dynamics refers to the
+\paragraph{Dynamics} As we discussed earlier, Dynamics refers to the
   effects of time in a system. For our surgical simulation benchmark,
   we have chosen to do without many dynamic behaviors to improve
   robustness and performance. However, dynamics are often an important
@@ -573,7 +569,7 @@ earlier.
 
   
 
-\item[Interactivity] Interactivity refers to two concepts: the overall
+\paragraph{Interactivity} Interactivity refers to two concepts: the overall
   speed or performance of the system and the methods that a user has
   to interact with it. With regards to simulation, we can talk about
   the concept of a time-sensitive simulation. Under this regime, we
@@ -603,7 +599,7 @@ earlier.
   depends on the intended use of the system and can greatly shape a
   user's impressions of the system.
 
-\item[Utility] We touched on some high level examples of Utility
+\paragraph{Utility} We touched on some high level examples of Utility
   earlier, citing video games and animation tools, but in general the
   reason we use simulation in a SAVS is to impart some aspect of
   mechanical realism into a virtual environment. The term mechanical
@@ -618,7 +614,6 @@ earlier.
   advance of manufacturing, saving both time and money during
   development.
       
-\end{description}
 
 \subsection{SAVS Challenges}
 
@@ -867,7 +862,8 @@ or simpler universal code which doesn't optimize anything.
 
 On the surface, general systems seem harder to build effectively and
 often don't result in well optimized solutions, impacting other
-aspects such as interactivity. The short answer is flexibility. For a
+aspects such as interactivity, potentially leading people to question
+the entire effort. The short answer in response is \textit{flexibility}. For a
 well studied domain, where every last detail is known and accounted
 for, a specialized system is probably the best choice. But in order to
 answer challenging research questions, tools and problems often have
@@ -938,8 +934,8 @@ skill - but no one enters and leaves such a project unchanged. Simply
 being a developer on a SAVS helps a one become a better software
 engineer, through the long hours of practice they will spend on
 it. Beyond individual developers, building a SAVS is important to the
-community at large for the reason that it demonstrates that
-such a project can be done. Like all large pieces of software,
+community at large for the reason that its existence demonstrates that
+such a project can be completed. Like all large pieces of software,
 sometimes the most important idea they can convey is that such a
 project is even feasible at all.
 

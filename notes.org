@@ -269,5 +269,12 @@
      implementation? Highlight anything that was non-quite-as-predicted or suprising?
 
      
+** Revision Notes (July 11 2017)
+
+   Think about intiution argument, consider surface finding : we
+   thought about many ways to describe the surface, but did we really
+   need to in the end?
+
+   
 
      
