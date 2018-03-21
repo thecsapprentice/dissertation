@@ -483,48 +483,33 @@ plastic surgery simulation tool.
 
 \subsection{Surgery Simulation Platform}
 
-We found that our participants who used our benchmark tool were
-extremely comfortable with aspects of 3D visual navigation, even with
-the very rudimentary orientation that was provided. Most participants
-found the visual examples of procedures demonstrated to be very
-enlightening, with many of them commenting that this visual
-illustration was the most informative exposure they had for procedures
-they only knew from reference literature (most of them had not
-witnessed these procedures in the operating room). Almost no
-participant volunteered the lack of self-collision processing as an
-observed omission, until the interviewer explicitly asked them about
-this aspect (all demonstrations in our workshop entailed full suturing
-of wound closure). On the contrary, several participants identified
-inaccuracies in the elastic behavior of the virtual tissues, finding
-that our models appeared to be more ``permissive'' to manipulation
-than real flesh tissue. An interface feature that was pointed out as
-lacking, is the inability to appreciate (simply by looking at the
-final sutured result) the deformation patterns that have resulted from
-a certain repair; it was suggested that adding a texture (grid lines
-or checkerboard patterns) on the skin surface would be much more
-useful in evaluating tissue strain and deformation. We also received
-requests for biologically inspired aids - in particular a
-visualization of anatomical elements such as blood vessels in the
-tissue being cut. Several users requested more traditional animation
-features, such as timeline scrubbing and history undo, as well as
-side-by-side views of different repair approaches for visual
-comparison.
-
-As was mention in Chapter \ref{chp:deployment}, the feature set of the
-surgical tool was relatively modest. These limitations were a
+As was mentioned in Chapter \ref{chp:deployment}, the feature set of
+the surgical tool was relatively modest. These limitations were a
 conscious choice to allow us to focus on the platform itself,
 balancing performance and extensibility. From a research standpoint,
 our biggest perceived challenge is improving the accuracy of the
 constitutive models for the biomaterials involved. At the time of the
-demonstration, full self-collision support as per the work described
-in Chapter \ref{chp:nonmanifold} had not been integrated into the
-benchmark, but this support will be essential for extending our work
-to procedures that rely on contact, in addition to sutures, to model
+pilot deployment described in Section \ref{sec:pilot}, full
+self-collision support as per the work described in Chapter
+\ref{chp:nonmanifold} had not been integrated into the benchmark, but
+this support will be essential for extending our work to procedures
+that rely on contact, in addition to sutures, to model
 properly. Finally, a large class of reconstructive procedures cannot
 be modeled with all incisions performed at the beginning of time; a
 flexible topology change modeling system would be necessary to
 incorporate a seamless ability for topology change, concurrent with
 deformation.
+
+In terms of technical feasibility, while we did not experience any
+major technical difficulties during the pilot deployment, the setup
+environment used was near optimal. Future testing and development will
+need to focus on robustness to less ideal settings. Some issues that
+will need to be addressed are improved handling of networks with
+variable latency and packet loss, protocol bandwidth usage, and
+general scalability beyond the eight stations used in the pilot
+deployment. While these are certainly major challenges, we feel they
+are well within our grasp as they have similarities with other fields
+such as multiplayer video games and media streaming. 
 
 A final note concerns an issue surrounding deployment: maintaining
 medical privacy. While supporting a surgical simulation tool that

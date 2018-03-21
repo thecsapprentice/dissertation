@@ -240,6 +240,7 @@ interface. This approach had many positive aspects:
  in a new direction: network based simulation.
 
  \subsection{Network Simulation: A Three-Tiered Architecture}
+\label{ssec:threetier}
  
  Unlike the previous design, the next iteration explored the potential
  of network, or cloud, based simulation. The idea was straightforward:
@@ -277,19 +278,6 @@ interface. This approach had many positive aspects:
  Replacing Thrift with Websockets was the final piece of what was
  later referred to as our Three-Tiered Architecture.
 
-
-\begin{figure}[t]
-\includegraphics[width=\columnwidth]{chapter_gridiron/images/CS_SurgerySim.jpg}
-
-%\caption{Pilot deployment of our interactive simulation system. A group of 14 MD residents in a program for plastic and reconstructive surgery interact and experiment with our platform. The simulator front end runs as a web-based application on ChromeBox\copyright clients, while numerical simulation occurs on a central server platform.} 
-\caption{Pilot deployment of web-based simulator}{Pilot deployment of
-  our interactive web-based simulator with 14 Plastic \&
-  Reconstructive Surgery medical residents at the University of
-  Wisconsin-Madison. This demo used the second architecture, the
-  three-tiered design.}
-
-\label{fig:pilot}
-\end{figure}
  
  The three-tier design consisted of the following components: a
  web-based client (Tier 1), an SMP server for modeling (Tier 2), and a
@@ -396,37 +384,6 @@ interface. This approach had many positive aspects:
      
  \end{enumerate}
 
- To evaluate this design, we conducted a pilot deployment for the
- medical residents in the University of Wisconsin-Madison Plastic \&
- Reconstructive Surgery program, as part of a workshop on craniofacial
- reconstruction techniques. We set up a local switched network at the
- location of the workshop, with a portable desktop-grade computer
- (with a 4-core Intel 4770R processor and 16GB RAM) acting as the Tier
- 2/3 simulation server, and a collection of eight Chromebox web-based
- thin clients as the user stations (our setup can be seen in Figure
- \ref{fig:pilot}). Although our modest portable server did not have
- the computing power available to our many-core accelerated server
- systems which we used for our large-scale offline simulations, its
- (AVX-accelerated) performance was more than adequate to deliver an
- interactive user experience. Total cost of the entire deployment,
- including server, networking and client stations was \$4,000.
-
-  Participants were initially given an extremely brief orientation on
-  visual navigation within the application and its interface. In first
-  part of the deployment exercise, the workshop instructor (a seasoned
-  user of the system) authored several different reconstructive
-  procedures on different anatomical models, while the participants
-  were invited to follow the manipulations as they were taking place
-  (without affecting them) by adjusting the view of the dynamic model
-  on their own station. Subsequently, individual participants who had
-  no prior exposure to the system were invited to drive the authoring
-  process, which their colleagues would virtually follow. The workshop
-  instructor provided guidance on clinical aspects of the repair being
-  authored, while questions about the user interface would be recorded
-  and addressed by the system developers. At the conclusion of the
-  exercise, the participants were debriefed and given the opportunity
-  to evaluate their experience and propose improvements.
-
   While this approach proved successful and provided many nice
   benefits for developers, it did so at the cost of added complexity
   nearly all cloud based systems create. The difficulties of managing
@@ -483,6 +440,89 @@ interface. This approach had many positive aspects:
  on the Electron framework\footnote{However, since we are now only
    targeting a single web browser, the one bundled with Electron, we
    are freed from worrying about supporting multiple browser versions.}. 
+
+ \section{Deployment Study}
+\label{sec:pilot}
+ 
+ \begin{figure}[t]
+\includegraphics[width=\columnwidth]{chapter_gridiron/images/CS_SurgerySim.jpg}
+
+%\caption{Pilot deployment of our interactive simulation system. A group of 14 MD residents in a program for plastic and reconstructive surgery interact and experiment with our platform. The simulator front end runs as a web-based application on ChromeBox\copyright clients, while numerical simulation occurs on a central server platform.} 
+\caption{Pilot deployment of web-based simulator}{Pilot deployment of
+  our interactive web-based simulator with 14 Plastic \&
+  Reconstructive Surgery medical residents at the University of
+  Wisconsin-Madison. This demo used the second architecture, the
+  three-tiered design.}
+
+\label{fig:pilot}
+\end{figure}
+
+
+Seeking to evaluate our system, we conducted a pilot deployment for
+the medical residents in the University of Wisconsin-Madison Plastic
+\& Reconstructive Surgery program, as part of a workshop on
+craniofacial reconstruction techniques. This deployment used the
+second architecture described in Section \ref{ssec:threetier}, the
+three-tiered design. We set up a local switched network at the
+location of the workshop, with a portable desktop-grade computer (with
+a 4-core Intel 4770R processor and 16GB RAM) acting as the Tier 2/3
+simulation server, and a collection of eight Chromebox web-based thin
+clients as the user stations (our setup can be seen in Figure
+\ref{fig:pilot}). Although our modest portable server did not have the
+computing power available to our many-core accelerated server systems
+which we used for our large-scale offline simulations, its
+(AVX-accelerated) performance was more than adequate to deliver an
+interactive user experience. Total cost of the entire deployment,
+including server, networking and client stations was \$4,000.
+
+The primary goals of the test were twofold. First, we were interested
+in determining the technical feasibility of the system under active,
+real-world conditions. Second, we wanted to gather initial impressions
+from likely users in order to help guide future research. Participants
+were initially given an extremely brief orientation on visual
+navigation within the application and its interface. In first part of
+the deployment exercise, the workshop instructor (a seasoned user of
+the system) authored several different reconstructive procedures on
+different anatomical models, while the participants were invited to
+follow the manipulations as they were taking place (without affecting
+them) by adjusting the view of the dynamic model on their own
+station. Subsequently, individual participants who had no prior
+exposure to the system were invited to drive the authoring process,
+which their colleagues would virtually follow. The workshop instructor
+provided guidance on clinical aspects of the repair being authored,
+while questions about the user interface would be recorded and
+addressed by the system developers. At the conclusion of the exercise,
+the participants were debriefed and given the opportunity to evaluate
+their experience and propose improvements.
+
+We found that our participants who used our benchmark tool were
+extremely comfortable with aspects of 3D visual navigation, even with
+the very rudimentary orientation that was provided. Most participants
+found the visual examples of procedures demonstrated to be very
+enlightening, with many of them commenting that this visual
+illustration was the most informative exposure they had for procedures
+they only knew from reference literature (most of them had not
+witnessed these procedures in the operating room). Almost no
+participant volunteered the lack of self-collision processing as an
+observed omission, until the interviewer explicitly asked them about
+this aspect (all demonstrations in our workshop entailed full suturing
+of wound closure). On the contrary, several participants identified
+inaccuracies in the elastic behavior of the virtual tissues, finding
+that our models appeared to be more ``permissive'' to manipulation
+than real flesh tissue. An interface feature that was pointed out as
+lacking was the inability to appreciate (simply by looking at the
+final sutured result) the deformation patterns that have resulted from
+a certain repair; it was suggested that adding a texture (grid lines
+or checkerboard patterns) on the skin surface would be much more
+useful in evaluating tissue strain and deformation. We also received
+requests for biologically inspired aids - in particular a
+visualization of anatomical elements such as blood vessels in the
+tissue being cut. These additions were requested for practical reasons
+- sub-dermal blood vessels and nerves are important to preserve during
+operations. Several users requested more traditional animation
+features, such as timeline scrubbing and history undo, as well as
+side-by-side views of different repair approaches for visual
+comparison.
 
  
 %%% Local Variables:
